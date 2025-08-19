@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Development files
+.DS_Store
+*.log
+
+# Build outputs (if any in future)
+dist/
+build/
+
+# IDE files
+.vscode/
+.idea/
+
+# Temporary files
+tmp/
+temp/
