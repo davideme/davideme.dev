@@ -22,50 +22,22 @@ This portfolio website showcases my experience as a technology leader with two d
 - **Modern Animations**: Smooth scrolling and fade-in effects
 - **Professional Layout**: Clean, accessible design focused on content
 - **Performance Optimized**: Fast loading with minimal dependencies
-- **Dark Mode Support**: Automatic dark/light mode based on system preference
 
 ## 📁 Project Structure
 
 ```
 davideme.dev/
-├── src/
-│   ├── components/
-│   │   └── Navigation.astro    # Navigation component
-│   ├── layouts/
-│   │   └── Layout.astro        # Base layout with global styles
-│   ├── pages/
-│   │   └── index.astro         # Main portfolio page
-│   ├── scripts/
-│   │   └── main.js            # JavaScript functionality
-│   └── styles/
-│       └── main.css           # Extracted CSS styles (legacy)
-├── .github/
-│   └── workflows/
-│       └── deploy.yml         # GitHub Pages deployment
-├── astro.config.mjs           # Astro configuration
-├── package.json               # Dependencies and scripts
-└── README.md                  # This file
+├── index.html          # Main portfolio page
+├── README.md          # This file
+└── (future additions)
 ```
 
 ## 🛠 Tech Stack
 
-- **Framework**: Astro 4.x (Static Site Generator)
 - **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
 - **Icons**: Font Awesome 6
 - **Hosting**: GitHub Pages
 - **Design**: Modern, responsive layout with CSS Grid & Flexbox
-- **Build Tool**: Vite (via Astro)
-
-## 🧞 Development Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`     |
-| `npm run build`           | Build your production site to `./dist/`         |
-| `npm run preview`         | Preview your build locally, before deploying    |
 
 ## 📈 Sections
 
@@ -74,10 +46,6 @@ All commands are run from the root of the project, from a terminal:
 3. **Achievements** - Measurable impact across organizations
 4. **Case Studies** - Deep dives into major projects
 5. **Contact** - Direct ways to connect
-
-## 🚀 Deployment
-
-The site is automatically deployed to GitHub Pages via GitHub Actions when changes are pushed to the main branch.
 
 ## 📧 Contact
 
@@ -90,4 +58,4 @@ The site is automatically deployed to GitHub Pages via GitHub Actions when chang
 
 ---
 
-*Built with passion for great engineering using Astro* 🚀
+*Built with passion for great engineering* 🚀

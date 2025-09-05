@@ -1,0 +1,27 @@
+{
+  "name": "davideme.dev",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Davide Mendolia's professional portfolio - CTO & Head of Engineering",
+  "author": "Davide Mendolia <d.mendolia82@gmail.com>",
+  "homepage": "https://davideme.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/davideme/davideme.dev.git"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "astro": "^4.15.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.0",
+    "@astrojs/sitemap": "^3.1.0",
+    "typescript": "^5.5.0"
+  }
+}
