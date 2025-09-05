@@ -1,0 +1,16 @@
+# Hugo
+/public/
+/resources/
+hugo_*.tar.gz
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.bak

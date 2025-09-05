@@ -1,0 +1,14 @@
+baseURL = 'https://davideme.dev'
+languageCode = 'en-us'
+title = 'Davide Mendolia - CTO & Head of Engineering'
+
+[params]
+  description = "Davide Mendolia - CTO & Head of Engineering with 20+ years scaling platforms from prototype to Series A. Expert in fintech, mobile architecture, team leadership, and platform scaling at topi, Karumi, Tuenti."
+  author = "Davide Mendolia"
+  email = "d.mendolia82@gmail.com"
+  linkedin = "https://www.linkedin.com/in/dmendolia/"
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
