@@ -14,13 +14,16 @@ const allTags = getAllTags(articles);
 
 <Layout title="Articles - Davide Mendolia">
   <Navigation />
-  
+
   <!-- Hero Section -->
   <section class="hero">
     <div class="container">
       <div class="hero-content fade-in">
         <h1>Articles & Insights</h1>
-        <p class="subtitle">Technical leadership, engineering practices, and lessons learned from scaling platforms</p>
+        <p class="subtitle">
+          Technical leadership, engineering practices, and lessons learned from
+          scaling platforms
+        </p>
       </div>
     </div>
   </section>
@@ -117,12 +120,16 @@ const allTags = getAllTags(articles);
       </section>
     )
   }
-          </Layout>
+</Layout>
 
 <style>
   /* Hero Section */
   .hero {
-    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-light) 100%);
+    background: linear-gradient(
+      135deg,
+      var(--bg-primary) 0%,
+      var(--bg-light) 100%
+    );
     padding: 10rem 0 4rem;
     text-align: center;
   }
@@ -178,7 +185,9 @@ const allTags = getAllTags(articles);
     padding: 2rem;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     border: 2px solid var(--accent-color);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
   }
 
   .featured-card:hover {
@@ -216,7 +225,9 @@ const allTags = getAllTags(articles);
     padding: 1.5rem;
     box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
     border: 1px solid var(--border-color);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
   }
 
   .article-card:hover {
@@ -324,7 +335,9 @@ const allTags = getAllTags(articles);
   .fade-in {
     opacity: 0;
     transform: translateY(30px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
+    transition:
+      opacity 0.6s ease,
+      transform 0.6s ease;
   }
 
   .fade-in.visible {

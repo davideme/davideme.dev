@@ -20,12 +20,12 @@ export async function getStaticPaths() {
 const { tag } = Astro.props;
 const articles = await getArticlesByTag(tag);
 const allTags = getAllTags(await getPublishedArticles());
-const relatedTags = allTags.filter(t => t !== tag).slice(0, 8);
+const relatedTags = allTags.filter((t) => t !== tag).slice(0, 8);
 ---
 
 <Layout title={`Articles tagged with "${tag}" - Davide Mendolia`}>
   <Navigation />
-  
+
   <!-- Hero Section -->
   <section class="hero">
     <div class="container">
@@ -33,10 +33,10 @@ const relatedTags = allTags.filter(t => t !== tag).slice(0, 8);
         <div class="breadcrumb">
           <a href="/articles">← Back to All Articles</a>
         </div>
-        
+
         <h1>Articles tagged with "{tag}"</h1>
         <p class="subtitle">
-          {articles.length} article{articles.length !== 1 ? 's' : ''} found
+          {articles.length} article{articles.length !== 1 ? "s" : ""} found
         </p>
       </div>
     </div>
@@ -44,68 +44,78 @@ const relatedTags = allTags.filter(t => t !== tag).slice(0, 8);
 
   <section class="articles-section">
     <div class="container">
-      {articles.length > 0 ? (
-        <div class="articles-grid">
-          {articles.map((article) => (
-            <article class="article-card fade-in">
-              <h2>
-                <a href={`/articles/${article.id}`}>{article.data.title}</a>
-              </h2>
-              {article.data.description && (
-                <p class="description">{article.data.description}</p>
-              )}
-              <div class="meta">
-                <span class="author">by {article.data.author}</span>
-                {article.data.publishDate && (
-                  <time datetime={article.data.publishDate.toISOString()}>
-                    {article.data.publishDate.toLocaleDateString()}
-                  </time>
+      {
+        articles.length > 0 ? (
+          <div class="articles-grid">
+            {articles.map((article) => (
+              <article class="article-card fade-in">
+                <h2>
+                  <a href={`/articles/${article.id}`}>{article.data.title}</a>
+                </h2>
+                {article.data.description && (
+                  <p class="description">{article.data.description}</p>
                 )}
-              </div>
-              {article.data.tags.length > 1 && (
-                <div class="tags">
-                  {article.data.tags
-                    .filter((t) => t !== tag)
-                    .map((otherTag) => (
-                      <a href={`/articles/tags/${otherTag}`} class="tag">
-                        {otherTag}
-                      </a>
-                    ))}
+                <div class="meta">
+                  <span class="author">by {article.data.author}</span>
+                  {article.data.publishDate && (
+                    <time datetime={article.data.publishDate.toISOString()}>
+                      {article.data.publishDate.toLocaleDateString()}
+                    </time>
+                  )}
                 </div>
-              )}
-            </article>
-          ))}
-        </div>
-      ) : (
-        <div class="no-articles fade-in">
-          <h3>No articles found</h3>
-          <p>We couldn't find any articles with the tag "{tag}".</p>
-          <a href="/articles" class="btn btn-primary">Browse All Articles</a>
-        </div>
-      )}
+                {article.data.tags.length > 1 && (
+                  <div class="tags">
+                    {article.data.tags
+                      .filter((t) => t !== tag)
+                      .map((otherTag) => (
+                        <a href={`/articles/tags/${otherTag}`} class="tag">
+                          {otherTag}
+                        </a>
+                      ))}
+                  </div>
+                )}
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div class="no-articles fade-in">
+            <h3>No articles found</h3>
+            <p>We couldn't find any articles with the tag "{tag}".</p>
+            <a href="/articles" class="btn btn-primary">
+              Browse All Articles
+            </a>
+          </div>
+        )
+      }
     </div>
   </section>
 
-  {relatedTags.length > 0 && (
-    <section class="related-tags">
-      <div class="container">
-        <h3 class="section-title fade-in">Explore Other Topics</h3>
-        <div class="tags-grid fade-in">
-          {relatedTags.map((relatedTag) => (
-            <a href={`/articles/tags/${relatedTag}`} class="tag-pill">
-              {relatedTag}
-            </a>
-          ))}
+  {
+    relatedTags.length > 0 && (
+      <section class="related-tags">
+        <div class="container">
+          <h3 class="section-title fade-in">Explore Other Topics</h3>
+          <div class="tags-grid fade-in">
+            {relatedTags.map((relatedTag) => (
+              <a href={`/articles/tags/${relatedTag}`} class="tag-pill">
+                {relatedTag}
+              </a>
+            ))}
+          </div>
         </div>
-      </div>
-    </section>
-  )}
+      </section>
+    )
+  }
 </Layout>
 
 <style>
   /* Hero Section */
   .hero {
-    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-light) 100%);
+    background: linear-gradient(
+      135deg,
+      var(--bg-primary) 0%,
+      var(--bg-light) 100%
+    );
     padding: 10rem 0 4rem;
     position: relative;
     z-index: 1;
@@ -167,7 +177,9 @@ const relatedTags = allTags.filter(t => t !== tag).slice(0, 8);
     padding: 1.5rem;
     box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
     border: 1px solid var(--border-color);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
   }
 
   .article-card:hover {
@@ -323,7 +335,9 @@ const relatedTags = allTags.filter(t => t !== tag).slice(0, 8);
   .fade-in {
     opacity: 0;
     transform: translateY(30px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
+    transition:
+      opacity 0.6s ease,
+      transform 0.6s ease;
   }
 
   .fade-in.visible {
