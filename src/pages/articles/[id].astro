@@ -24,24 +24,30 @@ const { Content } = await render(post);
       <h1>{post.data.title}</h1>
       <div class="meta">
         <p>by <strong>{post.data.author}</strong></p>
-        {post.data.publishDate && (
-          <time datetime={post.data.publishDate.toISOString()}>
-            Published: {post.data.publishDate.toLocaleDateString()}
-          </time>
-        )}
-        {post.data.updatedDate && (
-          <time datetime={post.data.updatedDate.toISOString()}>
-            Updated: {post.data.updatedDate.toLocaleDateString()}
-          </time>
-        )}
+        {
+          post.data.publishDate && (
+            <time datetime={post.data.publishDate.toISOString()}>
+              Published: {post.data.publishDate.toLocaleDateString()}
+            </time>
+          )
+        }
+        {
+          post.data.updatedDate && (
+            <time datetime={post.data.updatedDate.toISOString()}>
+              Updated: {post.data.updatedDate.toLocaleDateString()}
+            </time>
+          )
+        }
       </div>
-      {post.data.tags && post.data.tags.length > 0 && (
-        <div class="tags">
-          {post.data.tags.map(tag => (
-            <span class="tag">{tag}</span>
-          ))}
-        </div>
-      )}
+      {
+        post.data.tags && post.data.tags.length > 0 && (
+          <div class="tags">
+            {post.data.tags.map((tag) => (
+              <span class="tag">{tag}</span>
+            ))}
+          </div>
+        )
+      }
     </header>
     <Content />
   </article>
@@ -52,17 +58,17 @@ const { Content } = await render(post);
     margin: 1rem 0;
     color: #666;
   }
-  
+
   .meta time {
     display: block;
     font-size: 0.9rem;
     margin: 0.25rem 0;
   }
-  
+
   .tags {
     margin: 1rem 0;
   }
-  
+
   .tag {
     display: inline-block;
     background: #f0f0f0;

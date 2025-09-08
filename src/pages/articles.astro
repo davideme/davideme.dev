@@ -1,6 +1,10 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import { getPublishedArticles, getFeaturedArticles, getAllTags } from '../utils/articles';
+import Layout from "../layouts/Layout.astro";
+import {
+  getPublishedArticles,
+  getFeaturedArticles,
+  getAllTags,
+} from "../utils/articles";
 
 const articles = await getPublishedArticles();
 const featuredArticles = await getFeaturedArticles();
@@ -10,15 +14,56 @@ const allTags = getAllTags(articles);
 <Layout title="Articles">
   <main>
     <h1>Articles</h1>
-    
-    {featuredArticles.length > 0 && (
-      <section class="featured">
-        <h2>Featured Articles</h2>
-        <div class="featured-grid">
-          {featuredArticles.map(article => (
-            <article class="featured-card">
-              <h3><a href={`/articles/${article.id}`}>{article.data.title}</a></h3>
-              {article.data.description && <p class="description">{article.data.description}</p>}
+
+    {
+      featuredArticles.length > 0 && (
+        <section class="featured">
+          <h2>Featured Articles</h2>
+          <div class="featured-grid">
+            {featuredArticles.map((article) => (
+              <article class="featured-card">
+                <h3>
+                  <a href={`/articles/${article.id}`}>{article.data.title}</a>
+                </h3>
+                {article.data.description && (
+                  <p class="description">{article.data.description}</p>
+                )}
+                <div class="meta">
+                  <small>by {article.data.author}</small>
+                  {article.data.publishDate && (
+                    <time datetime={article.data.publishDate.toISOString()}>
+                      {article.data.publishDate.toLocaleDateString()}
+                    </time>
+                  )}
+                </div>
+                {article.data.tags.length > 0 && (
+                  <div class="tags">
+                    {article.data.tags.map((tag) => (
+                      <a href={`/articles/tags/${tag}`} class="tag">
+                        {tag}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </article>
+            ))}
+          </div>
+        </section>
+      )
+    }
+
+    <section class="all-articles">
+      <h2>All Articles</h2>
+      <div class="article-list">
+        {
+          articles.map((article) => (
+            <article class="article-card">
+              <h3>
+                <a href={`/articles/${article.id}`}>{article.data.title}</a>
+              </h3>
+              {article.data.description && (
+                <p class="description">{article.data.description}</p>
+              )}
               <div class="meta">
                 <small>by {article.data.author}</small>
                 {article.data.publishDate && (
@@ -29,54 +74,33 @@ const allTags = getAllTags(articles);
               </div>
               {article.data.tags.length > 0 && (
                 <div class="tags">
-                  {article.data.tags.map(tag => (
-                    <a href={`/articles/tags/${tag}`} class="tag">{tag}</a>
+                  {article.data.tags.map((tag) => (
+                    <a href={`/articles/tags/${tag}`} class="tag">
+                      {tag}
+                    </a>
                   ))}
                 </div>
               )}
             </article>
-          ))}
-        </div>
-      </section>
-    )}
-    
-    <section class="all-articles">
-      <h2>All Articles</h2>
-      <div class="article-list">
-        {articles.map(article => (
-          <article class="article-card">
-            <h3><a href={`/articles/${article.id}`}>{article.data.title}</a></h3>
-            {article.data.description && <p class="description">{article.data.description}</p>}
-            <div class="meta">
-              <small>by {article.data.author}</small>
-              {article.data.publishDate && (
-                <time datetime={article.data.publishDate.toISOString()}>
-                  {article.data.publishDate.toLocaleDateString()}
-                </time>
-              )}
-            </div>
-            {article.data.tags.length > 0 && (
-              <div class="tags">
-                {article.data.tags.map(tag => (
-                  <a href={`/articles/tags/${tag}`} class="tag">{tag}</a>
-                ))}
-              </div>
-            )}
-          </article>
-        ))}
+          ))
+        }
       </div>
     </section>
 
-    {allTags.length > 0 && (
-      <section class="tags-section">
-        <h3>Browse by Tags</h3>
-        <div class="all-tags">
-          {allTags.map(tag => (
-            <a href={`/articles/tags/${tag}`} class="tag-pill">{tag}</a>
-          ))}
-        </div>
-      </section>
-    )}
+    {
+      allTags.length > 0 && (
+        <section class="tags-section">
+          <h3>Browse by Tags</h3>
+          <div class="all-tags">
+            {allTags.map((tag) => (
+              <a href={`/articles/tags/${tag}`} class="tag-pill">
+                {tag}
+              </a>
+            ))}
+          </div>
+        </section>
+      )
+    }
   </main>
 </Layout>
 
@@ -177,7 +201,9 @@ const allTags = getAllTags(articles);
     font-size: 0.8rem;
     color: #555;
     text-decoration: none;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
   }
 
   .tag:hover {

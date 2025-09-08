@@ -1,14 +1,18 @@
 ---
-import Layout from '../../../layouts/Layout.astro';
-import { getArticlesByTag, getPublishedArticles, getAllTags } from '../../../utils/articles';
+import Layout from "../../../layouts/Layout.astro";
+import {
+  getArticlesByTag,
+  getPublishedArticles,
+  getAllTags,
+} from "../../../utils/articles";
 
 export async function getStaticPaths() {
   const articles = await getPublishedArticles();
   const tags = getAllTags(articles);
-  
-  return tags.map(tag => ({
+
+  return tags.map((tag) => ({
     params: { tag },
-    props: { tag }
+    props: { tag },
   }));
 }
 
@@ -19,38 +23,50 @@ const articles = await getArticlesByTag(tag);
 <Layout title={`Articles tagged with "${tag}"`}>
   <main>
     <h1>Articles tagged with "{tag}"</h1>
-    
+
     <nav class="breadcrumb">
       <a href="/articles">← Back to All Articles</a>
     </nav>
 
     <div class="article-list">
-      {articles.map(article => (
-        <article class="article-card">
-          <h2><a href={`/articles/${article.id}`}>{article.data.title}</a></h2>
-          {article.data.description && <p class="description">{article.data.description}</p>}
-          <div class="meta">
-            <small>by {article.data.author}</small>
-            {article.data.publishDate && (
-              <time datetime={article.data.publishDate.toISOString()}>
-                {article.data.publishDate.toLocaleDateString()}
-              </time>
+      {
+        articles.map((article) => (
+          <article class="article-card">
+            <h2>
+              <a href={`/articles/${article.id}`}>{article.data.title}</a>
+            </h2>
+            {article.data.description && (
+              <p class="description">{article.data.description}</p>
             )}
-          </div>
-          {article.data.tags.length > 1 && (
-            <div class="tags">
-              {article.data.tags.filter(t => t !== tag).map(otherTag => (
-                <a href={`/articles/tags/${otherTag}`} class="tag">{otherTag}</a>
-              ))}
+            <div class="meta">
+              <small>by {article.data.author}</small>
+              {article.data.publishDate && (
+                <time datetime={article.data.publishDate.toISOString()}>
+                  {article.data.publishDate.toLocaleDateString()}
+                </time>
+              )}
             </div>
-          )}
-        </article>
-      ))}
+            {article.data.tags.length > 1 && (
+              <div class="tags">
+                {article.data.tags
+                  .filter((t) => t !== tag)
+                  .map((otherTag) => (
+                    <a href={`/articles/tags/${otherTag}`} class="tag">
+                      {otherTag}
+                    </a>
+                  ))}
+              </div>
+            )}
+          </article>
+        ))
+      }
     </div>
 
-    {articles.length === 0 && (
-      <p class="no-articles">No articles found with the tag "{tag}".</p>
-    )}
+    {
+      articles.length === 0 && (
+        <p class="no-articles">No articles found with the tag "{tag}".</p>
+      )
+    }
   </main>
 </Layout>
 
