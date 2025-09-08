@@ -1,0 +1,74 @@
+---
+import { getCollection, render } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+
+// 1. Generate a new path for every collection entry
+export async function getStaticPaths() {
+  const posts = await getCollection("articles", ({ data }) => {
+    return data.draft !== true;
+  });
+  return posts.map((post) => ({
+    params: { id: post.id },
+    props: { post },
+  }));
+}
+
+// 2. For your template, you can get the entry directly from the prop
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+
+<Layout title={post.data.title}>
+  <article>
+    <header>
+      <h1>{post.data.title}</h1>
+      <div class="meta">
+        <p>by <strong>{post.data.author}</strong></p>
+        {post.data.publishDate && (
+          <time datetime={post.data.publishDate.toISOString()}>
+            Published: {post.data.publishDate.toLocaleDateString()}
+          </time>
+        )}
+        {post.data.updatedDate && (
+          <time datetime={post.data.updatedDate.toISOString()}>
+            Updated: {post.data.updatedDate.toLocaleDateString()}
+          </time>
+        )}
+      </div>
+      {post.data.tags && post.data.tags.length > 0 && (
+        <div class="tags">
+          {post.data.tags.map(tag => (
+            <span class="tag">{tag}</span>
+          ))}
+        </div>
+      )}
+    </header>
+    <Content />
+  </article>
+</Layout>
+
+<style>
+  .meta {
+    margin: 1rem 0;
+    color: #666;
+  }
+  
+  .meta time {
+    display: block;
+    font-size: 0.9rem;
+    margin: 0.25rem 0;
+  }
+  
+  .tags {
+    margin: 1rem 0;
+  }
+  
+  .tag {
+    display: inline-block;
+    background: #f0f0f0;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    margin-right: 0.5rem;
+  }
+</style>

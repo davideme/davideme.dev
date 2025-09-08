@@ -1,0 +1,156 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { getArticlesByTag, getPublishedArticles, getAllTags } from '../../../utils/articles';
+
+export async function getStaticPaths() {
+  const articles = await getPublishedArticles();
+  const tags = getAllTags(articles);
+  
+  return tags.map(tag => ({
+    params: { tag },
+    props: { tag }
+  }));
+}
+
+const { tag } = Astro.props;
+const articles = await getArticlesByTag(tag);
+---
+
+<Layout title={`Articles tagged with "${tag}"`}>
+  <main>
+    <h1>Articles tagged with "{tag}"</h1>
+    
+    <nav class="breadcrumb">
+      <a href="/articles">← Back to All Articles</a>
+    </nav>
+
+    <div class="article-list">
+      {articles.map(article => (
+        <article class="article-card">
+          <h2><a href={`/articles/${article.id}`}>{article.data.title}</a></h2>
+          {article.data.description && <p class="description">{article.data.description}</p>}
+          <div class="meta">
+            <small>by {article.data.author}</small>
+            {article.data.publishDate && (
+              <time datetime={article.data.publishDate.toISOString()}>
+                {article.data.publishDate.toLocaleDateString()}
+              </time>
+            )}
+          </div>
+          {article.data.tags.length > 1 && (
+            <div class="tags">
+              {article.data.tags.filter(t => t !== tag).map(otherTag => (
+                <a href={`/articles/tags/${otherTag}`} class="tag">{otherTag}</a>
+              ))}
+            </div>
+          )}
+        </article>
+      ))}
+    </div>
+
+    {articles.length === 0 && (
+      <p class="no-articles">No articles found with the tag "{tag}".</p>
+    )}
+  </main>
+</Layout>
+
+<style>
+  main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .breadcrumb {
+    margin-bottom: 2rem;
+  }
+
+  .breadcrumb a {
+    color: var(--accent-color);
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+
+  .breadcrumb a:hover {
+    text-decoration: underline;
+  }
+
+  .article-list {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .article-card {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    background: var(--card-bg);
+    transition: box-shadow 0.2s ease;
+  }
+
+  .article-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .article-card h2 {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+  }
+
+  .article-card h2 a {
+    text-decoration: none;
+    color: var(--primary-color);
+  }
+
+  .article-card h2 a:hover {
+    color: var(--accent-color);
+  }
+
+  .description {
+    color: var(--text-light);
+    margin-bottom: 1rem;
+    line-height: 1.5;
+  }
+
+  .meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    color: var(--text-light);
+    font-size: 0.9rem;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .tag {
+    background: var(--bg-light);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    color: var(--secondary-color);
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+  }
+
+  .tag:hover {
+    background: var(--accent-color);
+    color: white;
+  }
+
+  .no-articles {
+    text-align: center;
+    color: var(--text-light);
+    font-style: italic;
+    margin-top: 3rem;
+  }
+</style>
