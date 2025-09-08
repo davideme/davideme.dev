@@ -1,5 +1,6 @@
 ---
 import Layout from "../../../layouts/Layout.astro";
+import Navigation from "../../../components/Navigation.astro";
 import {
   getArticlesByTag,
   getPublishedArticles,
@@ -18,68 +19,106 @@ export async function getStaticPaths() {
 
 const { tag } = Astro.props;
 const articles = await getArticlesByTag(tag);
+const allTags = getAllTags(await getPublishedArticles());
+const relatedTags = allTags.filter(t => t !== tag).slice(0, 8);
 ---
 
-<Layout title={`Articles tagged with "${tag}"`}>
-  <main>
-    <h1>Articles tagged with "{tag}"</h1>
-
-    <nav class="breadcrumb">
-      <a href="/articles">← Back to All Articles</a>
-    </nav>
-
-    <div class="article-list">
-      {
-        articles.map((article) => (
-          <article class="article-card">
-            <h2>
-              <a href={`/articles/${article.id}`}>{article.data.title}</a>
-            </h2>
-            {article.data.description && (
-              <p class="description">{article.data.description}</p>
-            )}
-            <div class="meta">
-              <small>by {article.data.author}</small>
-              {article.data.publishDate && (
-                <time datetime={article.data.publishDate.toISOString()}>
-                  {article.data.publishDate.toLocaleDateString()}
-                </time>
-              )}
-            </div>
-            {article.data.tags.length > 1 && (
-              <div class="tags">
-                {article.data.tags
-                  .filter((t) => t !== tag)
-                  .map((otherTag) => (
-                    <a href={`/articles/tags/${otherTag}`} class="tag">
-                      {otherTag}
-                    </a>
-                  ))}
-              </div>
-            )}
-          </article>
-        ))
-      }
+<Layout title={`Articles tagged with "${tag}" - Davide Mendolia`}>
+  <Navigation />
+  
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content fade-in">
+        <div class="breadcrumb">
+          <a href="/articles">← Back to All Articles</a>
+        </div>
+        
+        <h1>Articles tagged with "{tag}"</h1>
+        <p class="subtitle">
+          {articles.length} article{articles.length !== 1 ? 's' : ''} found
+        </p>
+      </div>
     </div>
+  </section>
 
-    {
-      articles.length === 0 && (
-        <p class="no-articles">No articles found with the tag "{tag}".</p>
-      )
-    }
-  </main>
+  <section class="articles-section">
+    <div class="container">
+      {articles.length > 0 ? (
+        <div class="articles-grid">
+          {articles.map((article) => (
+            <article class="article-card fade-in">
+              <h2>
+                <a href={`/articles/${article.id}`}>{article.data.title}</a>
+              </h2>
+              {article.data.description && (
+                <p class="description">{article.data.description}</p>
+              )}
+              <div class="meta">
+                <span class="author">by {article.data.author}</span>
+                {article.data.publishDate && (
+                  <time datetime={article.data.publishDate.toISOString()}>
+                    {article.data.publishDate.toLocaleDateString()}
+                  </time>
+                )}
+              </div>
+              {article.data.tags.length > 1 && (
+                <div class="tags">
+                  {article.data.tags
+                    .filter((t) => t !== tag)
+                    .map((otherTag) => (
+                      <a href={`/articles/tags/${otherTag}`} class="tag">
+                        {otherTag}
+                      </a>
+                    ))}
+                </div>
+              )}
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div class="no-articles fade-in">
+          <h3>No articles found</h3>
+          <p>We couldn't find any articles with the tag "{tag}".</p>
+          <a href="/articles" class="btn btn-primary">Browse All Articles</a>
+        </div>
+      )}
+    </div>
+  </section>
+
+  {relatedTags.length > 0 && (
+    <section class="related-tags">
+      <div class="container">
+        <h3 class="section-title fade-in">Explore Other Topics</h3>
+        <div class="tags-grid fade-in">
+          {relatedTags.map((relatedTag) => (
+            <a href={`/articles/tags/${relatedTag}`} class="tag-pill">
+              {relatedTag}
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
 </Layout>
 
 <style>
-  main {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
+  /* Hero Section */
+  .hero {
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-light) 100%);
+    padding: 10rem 0 4rem;
+    position: relative;
+    z-index: 1;
   }
 
-  h1 {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  .hero-content {
+    text-align: center;
   }
 
   .breadcrumb {
@@ -90,37 +129,63 @@ const articles = await getArticlesByTag(tag);
     color: var(--accent-color);
     text-decoration: none;
     font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.2s ease;
   }
 
   .breadcrumb a:hover {
-    text-decoration: underline;
+    color: var(--secondary-color);
   }
 
-  .article-list {
+  .hero-content h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+  }
+
+  .subtitle {
+    font-size: 1.25rem;
+    color: var(--text-light);
+    margin: 0;
+  }
+
+  /* Articles Section */
+  .articles-section {
+    padding: 4rem 0;
+  }
+
+  .articles-grid {
     display: grid;
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
   }
 
   .article-card {
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 1.5rem;
     background: var(--card-bg);
-    transition: box-shadow 0.2s ease;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-color);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
 
   .article-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
   }
 
   .article-card h2 {
-    margin-top: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
     margin-bottom: 0.75rem;
+    line-height: 1.4;
   }
 
   .article-card h2 a {
-    text-decoration: none;
     color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.2s ease;
   }
 
   .article-card h2 a:hover {
@@ -129,8 +194,9 @@ const articles = await getArticlesByTag(tag);
 
   .description {
     color: var(--text-light);
-    margin-bottom: 1rem;
-    line-height: 1.5;
+    margin-bottom: 1.25rem;
+    line-height: 1.6;
+    font-size: 0.95rem;
   }
 
   .meta {
@@ -139,34 +205,162 @@ const articles = await getArticlesByTag(tag);
     align-items: center;
     margin-bottom: 1rem;
     color: var(--text-light);
-    font-size: 0.9rem;
+    font-size: 0.875rem;
+  }
+
+  .author {
+    font-weight: 500;
+  }
+
+  time {
+    font-style: italic;
   }
 
   .tags {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+    margin-top: 1rem;
   }
 
   .tag {
     background: var(--bg-light);
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.8rem;
     color: var(--secondary-color);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
     text-decoration: none;
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease;
+    font-weight: 500;
   }
 
   .tag:hover {
     background: var(--accent-color);
     color: white;
+    transform: scale(1.05);
   }
 
+  /* No Articles */
   .no-articles {
     text-align: center;
+    padding: 4rem 2rem;
     color: var(--text-light);
-    font-style: italic;
-    margin-top: 3rem;
+  }
+
+  .no-articles h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+  }
+
+  .no-articles p {
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+  }
+
+  .btn-primary {
+    background: var(--accent-color);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: var(--secondary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Related Tags */
+  .related-tags {
+    background: var(--bg-light);
+    padding: 4rem 0;
+    text-align: center;
+  }
+
+  .section-title {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    color: var(--primary-color);
+  }
+
+  .tags-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .tag-pill {
+    background: var(--accent-color);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 30px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .tag-pill:hover {
+    background: var(--secondary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Fade-in Animation */
+  .fade-in {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .hero {
+      padding: 8rem 0 3rem;
+    }
+
+    .hero-content h1 {
+      font-size: 2.25rem;
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+    }
+
+    .articles-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .container {
+      padding: 0 1rem;
+    }
+
+    .meta {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+    }
   }
 </style>
