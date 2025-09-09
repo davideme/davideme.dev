@@ -22,13 +22,13 @@ export async function getFeaturedArticles(): Promise<Article[]> {
 
 export async function getArticlesByTag(tag: string): Promise<Article[]> {
   const articles = await getPublishedArticles();
-  return articles.filter((article) => article.data.tags.includes(tag));
+  return articles.filter((article) => (article.data.tags ?? []).includes(tag));
 }
 
 export function getAllTags(articles: Article[]): string[] {
   const tags = new Set<string>();
   articles.forEach((article) => {
-    article.data.tags.forEach((tag) => tags.add(tag));
+    (article.data.tags ?? []).forEach((tag) => tags.add(tag));
   });
   return Array.from(tags).sort();
 }
