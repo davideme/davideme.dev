@@ -8,8 +8,6 @@ featured: true
 draft: false
 ---
 
-# Why could PHP and Java disappear?
-
 While it's easy to prefer one language over another and argue about how much better it is to rewrite something in another language or framework, it's harder to provide evidence. I have been there, and have said stuff like “If we rewrite this in [insert here your preferred language], it will be easier/faster/more productive”.
 
 I've always wanted to be able to compare real implementations, not just "hello world" examples, so I chose to compare 7 languages 🤯: TypeScript, Python, C#, Java, PHP, Go, and Kotlin.
