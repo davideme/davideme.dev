@@ -23,7 +23,7 @@ For each one, I selected the framework that supported REST/JSON implementation, 
 I started in April, so the stack might be a slightly outdated ⏳.
 
 | Language   | Version | Runtime    | Framework    |
-|------------|---------|------------|--------------|
+| ---------- | ------- | ---------- | ------------ |
 | TypeScript | 5.8     | Node 22    | Fastify      |
 | Python     | 3.12    |            | FastAPI      |
 | C#         | 12      | .NET 8     | ASP.NET Core |
