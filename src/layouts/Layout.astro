@@ -58,6 +58,22 @@ const { title, description = "Davide Mendolia - CTO & Head of Engineering with 2
         if (heroContent) {
             heroContent.classList.add('visible');
         }
+
+        // Handle image loading states
+        document.querySelectorAll('.prose img').forEach(img => {
+            const imgElement = img as HTMLImageElement;
+            if (imgElement.complete) {
+                imgElement.classList.add('loaded');
+            } else {
+                imgElement.addEventListener('load', () => {
+                    imgElement.classList.add('loaded');
+                });
+                imgElement.addEventListener('error', () => {
+                    imgElement.classList.add('loaded');
+                    // Optionally show error state
+                });
+            }
+        });
     </script>
 </body>
 
@@ -145,8 +161,13 @@ nav {
     transition: color 0.3s ease;
 }
 
-.nav-links a:hover {
+.nav-links a:hover,
+.nav-links a.active {
     color: var(--accent-color);
+}
+
+.nav-links a.active {
+    font-weight: 600;
 }
 
 /* Hero Section */
@@ -522,6 +543,166 @@ html {
 .fade-in.visible {
     opacity: 1;
     transform: translateY(0);
+}
+
+/* Markdown Tables */
+main table, .prose table, article table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2rem 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  border-radius: 10px;
+  table-layout: fixed;
+}
+
+/* Balanced column widths */
+.prose table th:nth-child(1),
+.prose table td:nth-child(1) { width: 22%; }
+.prose table th:nth-child(2),
+.prose table td:nth-child(2) { width: 12%; }
+.prose table th:nth-child(3),
+.prose table td:nth-child(3) { width: 20%; }
+.prose table th:nth-child(4),
+.prose table td:nth-child(4) { width: 46%; }
+
+/* Image loading states */
+.prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 2rem 0;
+  display: block;
+  background: linear-gradient(90deg, var(--bg-light) 25%, rgba(255,255,255,0.1) 50%, var(--bg-light) 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  min-height: 200px;
+  position: relative;
+}
+
+.prose img::before {
+  content: "Loading image...";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--text-light);
+  font-size: 0.9rem;
+  font-weight: 500;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.prose img[src*=".gif"]::before {
+  content: "Loading animation...";
+}
+
+.prose img:not([loading="lazy"])::before,
+.prose img[complete]::before {
+  opacity: 0;
+}
+
+@keyframes loading {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Hide loading animation once image is loaded */
+.prose img.loaded {
+  background: none;
+  animation: none;
+}
+
+.prose img.loaded::before {
+  display: none;
+}
+
+/* Specific image sizing */
+.prose img[src*="openapi-lamps"] {
+  width: 80%;
+  max-width: 80%;
+  margin: 2rem auto;
+}
+
+.prose table thead tr {
+    background: linear-gradient(135deg, var(--accent-color) 0%, #004a99 100%);
+    color: #fff;
+    text-align: left;
+}
+
+.prose table th,
+.prose table td {
+    padding: 0.75rem 1rem;
+    border-right: 1px solid var(--border-color);
+    vertical-align: top;
+}
+
+.prose table th:last-child,
+.prose table td:last-child {
+    border-right: none;
+}
+
+.prose table tbody tr {
+    border-top: 1px solid var(--border-color);
+    transition: background 0.25s ease;
+}
+
+.prose table tbody tr:nth-child(even) {
+    background: rgba(0,0,0,0.03);
+}
+
+[data-theme='dark'] .prose table tbody tr:nth-child(even) {
+    background: rgba(255,255,255,0.04);
+}
+
+.prose table tbody tr:hover {
+    background: var(--bg-light);
+}
+
+[data-theme='dark'] .prose table tbody tr:hover {
+    background: #222;
+}
+
+.prose table th {
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.prose table td {
+    font-weight: 400;
+}
+
+/* Responsive table: add horizontal scroll on small screens */
+.prose table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+
+.prose table::-webkit-scrollbar {
+    height: 8px;
+}
+.prose table::-webkit-scrollbar-track {
+    background: transparent;
+}
+.prose table::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+@media (max-width: 640px) {
+    .prose table th,
+    .prose table td {
+        padding: 0.6rem 0.75rem;
+        font-size: 0.8rem;
+    }
 }
 </style>
 </html>

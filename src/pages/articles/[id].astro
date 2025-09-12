@@ -97,7 +97,7 @@ const { Content } = await render(post);
   <!-- Article Content -->
   <section class="article-content">
     <div class="container">
-      <article class="prose fade-in">
+      <article class="prose">
         <Content />
       </article>
     </div>
@@ -394,20 +394,6 @@ const { Content } = await render(post);
     background: var(--bg-light);
     border-color: var(--accent-color);
     transform: translateY(-2px);
-  }
-
-  /* Fade-in Animation */
-  .fade-in {
-    opacity: 0;
-    transform: translateY(30px);
-    transition:
-      opacity 0.6s ease,
-      transform 0.6s ease;
-  }
-
-  .fade-in.visible {
-    opacity: 1;
-    transform: translateY(0);
   }
 
   /* Responsive Design */
