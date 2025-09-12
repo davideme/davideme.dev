@@ -61,14 +61,15 @@ const { title, description = "Davide Mendolia - CTO & Head of Engineering with 2
 
         // Handle image loading states
         document.querySelectorAll('.prose img').forEach(img => {
-            if (img.complete) {
-                img.classList.add('loaded');
+            const imgElement = img as HTMLImageElement;
+            if (imgElement.complete) {
+                imgElement.classList.add('loaded');
             } else {
-                img.addEventListener('load', () => {
-                    img.classList.add('loaded');
+                imgElement.addEventListener('load', () => {
+                    imgElement.classList.add('loaded');
                 });
-                img.addEventListener('error', () => {
-                    img.classList.add('loaded');
+                imgElement.addEventListener('error', () => {
+                    imgElement.classList.add('loaded');
                     // Optionally show error state
                 });
             }
@@ -613,7 +614,16 @@ main table, .prose table, article table {
 
 .prose img.loaded::before {
   display: none;
-}.prose table thead tr {
+}
+
+/* Specific image sizing */
+.prose img[src*="openapi-lamps"] {
+  width: 80%;
+  max-width: 80%;
+  margin: 2rem auto;
+}
+
+.prose table thead tr {
     background: linear-gradient(135deg, var(--accent-color) 0%, #004a99 100%);
     color: #fff;
     text-align: left;
