@@ -523,5 +523,104 @@ html {
     opacity: 1;
     transform: translateY(0);
 }
+
+/* Markdown Tables */
+main table, .prose table, article table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2rem 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  border-radius: 10px;
+  table-layout: fixed;
+}
+
+/* Balanced column widths */
+.prose table th:nth-child(1),
+.prose table td:nth-child(1) { width: 22%; }
+.prose table th:nth-child(2),
+.prose table td:nth-child(2) { width: 12%; }
+.prose table th:nth-child(3),
+.prose table td:nth-child(3) { width: 20%; }
+.prose table th:nth-child(4),
+.prose table td:nth-child(4) { width: 46%; }.prose table thead tr {
+    background: linear-gradient(135deg, var(--accent-color) 0%, #004a99 100%);
+    color: #fff;
+    text-align: left;
+}
+
+.prose table th,
+.prose table td {
+    padding: 0.75rem 1rem;
+    border-right: 1px solid var(--border-color);
+    vertical-align: top;
+}
+
+.prose table th:last-child,
+.prose table td:last-child {
+    border-right: none;
+}
+
+.prose table tbody tr {
+    border-top: 1px solid var(--border-color);
+    transition: background 0.25s ease;
+}
+
+.prose table tbody tr:nth-child(even) {
+    background: rgba(0,0,0,0.03);
+}
+
+[data-theme='dark'] .prose table tbody tr:nth-child(even) {
+    background: rgba(255,255,255,0.04);
+}
+
+.prose table tbody tr:hover {
+    background: var(--bg-light);
+}
+
+[data-theme='dark'] .prose table tbody tr:hover {
+    background: #222;
+}
+
+.prose table th {
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.prose table td {
+    font-weight: 400;
+}
+
+/* Responsive table: add horizontal scroll on small screens */
+.prose table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+
+.prose table::-webkit-scrollbar {
+    height: 8px;
+}
+.prose table::-webkit-scrollbar-track {
+    background: transparent;
+}
+.prose table::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+@media (max-width: 640px) {
+    .prose table th,
+    .prose table td {
+        padding: 0.6rem 0.75rem;
+        font-size: 0.8rem;
+    }
+}
 </style>
 </html>
