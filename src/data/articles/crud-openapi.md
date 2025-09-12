@@ -97,7 +97,7 @@ This not only demonstrates that TypeScript is more concise when writing similar 
 
 [Lines of codes.mov](attachment:bb1629b8-5f21-4581-a6f9-14294e4807ac:Lines_of_codes.mov)
 
-**S Tier** - (400ish lines for the App and 400ish lines for tests):
+**S Tier** - (500 lines for the App and 500 lines for tests):
 
 - **TypeScript** and **Python**: popular and concise.
 - **C#**: the champion of the .NET world, especially in enterprise.
@@ -113,13 +113,13 @@ This not only demonstrates that TypeScript is more concise when writing similar 
 **C Tier**
 
 - **Java** (1000 lines): could be optimized with the Record pattern or Lombok, but it’s not the experience out of the box.
-- **PHP** (1000 lines): similar to Java, the Constructor Property Promotion might reduce the boilerplate, but not yet in the flow of the generator.
+- **PHP** (>1000 lines): similar to Java, the Constructor Property Promotion might reduce the boilerplate, but not yet in the flow of the generator.
 
 ### [***Don't repeat yourself*** (DRY)](https://www.google.es/books/edition/The_Pragmatic_Programmer/5wBQEp6ruIAC?hl=en&gbpv=1&pg=PA27&printsec=frontcover&dq=dry) vs [**A little copying is better than a little dependency**](https://www.youtube.com/watch?v=PAAkCSZUG1c&t=9m28s)
 
-Another metric that we can use to compare languages is their [DRYness](https://github.com/boyter/scc?tab=readme-ov-file#unique-lines-of-code-uloc)  ****🌵. How many lines do you repeat in your code? This should be counterbalanced by coupling your code, you sometimes want a bit of repetition(looking at you [is-number](https://www.npmjs.com/package/is-number) 👀)  instead of depending on another function or package. 
+Another metric that we can use to compare languages is their [DRYness](https://github.com/boyter/scc?tab=readme-ov-file#unique-lines-of-code-uloc)  ****🌵. How many lines do you repeat in your code? This should be counterbalanced by coupling your code; you sometimes want a bit of repetition(looking at you [is-number](https://www.npmjs.com/package/is-number) 👀)  instead of depending on another function or package. 
 
-So regardless of the size of the solution, how often are you writing the same line(this includes brackets, imports, if, …):
+So, regardless of the size of the solution, how often are you writing the same line(this includes brackets, imports, if, …):
 
 **S Tier** - (45% of Lines are unique):
 
@@ -133,7 +133,7 @@ So regardless of the size of the solution, how often are you writing the same li
 
 - **Java** and **PHP**
 
-## Where to go from here ?
+## Where to go from here?
 
 While I don’t think PHP is going to be replaced tomorrow, it certainly won't be picked up for new projects, and we are already seeing trends of big projects and companies using TS/JS or Go for new backends.
 
