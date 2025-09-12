@@ -38,7 +38,7 @@ My first goal was to understand which language needed less code to do that. The 
 
 We all know that some languages perform better in certain situations, but all of them are used to write REST/JSON APIs. I used an example object "Lamp", with a status that can be ON or OFF, and I limited the scope to 5 endpoints: Create, Update, Delete, Get, and List.
 
-![Screenshot 2025-08-23 at 11.31.17.png](attachment:7eacd5ab-48bf-4a66-b180-9a0ed3e2e1a0:Screenshot_2025-08-23_at_11.31.17.png)
+![OpenAPI Definition](openapi-lamps.png)
 
 Let’s guesstimate and say it will take any of these languages around 200 lines of code to implement this. I’m sure  I’m underestimating this by a 2x factor (so 400) while thinking mostly of the happy path.  I don’t want to compare just the developer experience, build time, CI time, or execution time just yet. I could go into more detail about that in a future blog post.
 
@@ -95,7 +95,7 @@ This not only demonstrates that TypeScript is more concise when writing similar 
 
 ## Implementation in numbers
 
-[Lines of codes.mov](attachment:bb1629b8-5f21-4581-a6f9-14294e4807ac:Lines_of_codes.mov)
+![Line of Code Graph](Lines%20of%20codes.gif)
 
 **S Tier** - (500 lines for the App and 500 lines for tests):
 
@@ -125,11 +125,11 @@ So, regardless of the size of the solution, how often are you writing the same l
 
 - **TypeScript** and **Kotlin**
 
-**A Tier**  - ****(40–44% of Lines are unique):
+**A Tier**  - (40–44% of Lines are unique):
 
 - **Python**, **Go** and **C#**
 
-**B Tier**  - ****(35–39% of Lines are unique):
+**B Tier**  - (35–39% of Lines are unique):
 
 - **Java** and **PHP**
 
