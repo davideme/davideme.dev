@@ -1,9 +1,9 @@
 ---
 title: "Why could PHP and Java disappear?"
 author: "Davide Mendolia"
-description: ""
+description: "Comparison of 7 programming languages for REST API development. TypeScript and Python need 60% less code than Java and PHP for identical functionality."
 publishDate: 2025-09-07
-tags: []
+tags: ["programming-languages", "backend-development", "typescript", "java", "php", "python", "golang", "kotlin", "csharp", "rest-api", "code-comparison", "developer-productivity"]
 featured: true
 draft: false
 ---
