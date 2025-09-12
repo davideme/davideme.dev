@@ -1,0 +1,461 @@
+---
+import { getCollection, render } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+import Navigation from "../../components/Navigation.astro";
+
+// 1. Generate a new path for every collection entry
+export async function getStaticPaths() {
+  const posts = await getCollection("articles", ({ data }) => {
+    return data.draft !== true;
+  });
+  return posts.map((post) => ({
+    params: { id: post.id },
+    props: { post },
+  }));
+}
+
+// 2. For your template, you can get the entry directly from the prop
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+
+<Layout
+  title={`${post.data.title} - Davide Mendolia`}
+  description={post.data.description}
+>
+  <Navigation />
+
+  <!-- Article Header -->
+  <section class="article-header">
+    <div class="container">
+      <div class="article-header-content fade-in">
+        <div class="breadcrumb">
+          <a href="/articles">← Back to Articles</a>
+        </div>
+
+        <h1>{post.data.title}</h1>
+
+        {
+          post.data.description && (
+            <p class="article-subtitle">{post.data.description}</p>
+          )
+        }
+
+        <div class="article-meta">
+          <div class="meta-item">
+            <i class="fas fa-user"></i>
+            <span>by <strong>{post.data.author}</strong></span>
+          </div>
+
+          {
+            post.data.publishDate && (
+              <div class="meta-item">
+                <i class="fas fa-calendar" />
+                <time datetime={post.data.publishDate.toISOString()}>
+                  {post.data.publishDate.toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </time>
+              </div>
+            )
+          }
+
+          {
+            post.data.updatedDate && (
+              <div class="meta-item">
+                <i class="fas fa-edit" />
+                <time datetime={post.data.updatedDate.toISOString()}>
+                  Updated{" "}
+                  {post.data.updatedDate.toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </time>
+              </div>
+            )
+          }
+        </div>
+
+        {
+          post.data.tags && post.data.tags.length > 0 && (
+            <div class="article-tags">
+              {post.data.tags.map((tag) => (
+                <a href={`/articles/tags/${tag}`} class="tag">
+                  {tag}
+                </a>
+              ))}
+            </div>
+          )
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Article Content -->
+  <section class="article-content">
+    <div class="container">
+      <article class="prose fade-in">
+        <Content />
+      </article>
+    </div>
+  </section>
+
+  <!-- Footer CTA -->
+  <section class="article-footer">
+    <div class="container">
+      <div class="article-footer-content fade-in">
+        <h3>Enjoyed this article?</h3>
+        <p>
+          Connect with me to discuss engineering leadership, platform scaling,
+          or technical challenges.
+        </p>
+        <div class="footer-links">
+          <a href="/articles" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i>
+            More Articles
+          </a>
+          <a href="mailto:d.mendolia82@gmail.com" class="btn btn-primary">
+            <i class="fas fa-envelope"></i>
+            Get in Touch
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  /* Article Header */
+  .article-header {
+    background: linear-gradient(
+      135deg,
+      var(--bg-primary) 0%,
+      var(--bg-light) 100%
+    );
+    padding: 10rem 0 4rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  .breadcrumb {
+    margin-bottom: 2rem;
+  }
+
+  .breadcrumb a {
+    color: var(--accent-color);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.2s ease;
+  }
+
+  .breadcrumb a:hover {
+    color: var(--secondary-color);
+  }
+
+  .article-header-content h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+    color: var(--primary-color);
+  }
+
+  .article-subtitle {
+    font-size: 1.25rem;
+    color: var(--text-light);
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    max-width: 800px;
+  }
+
+  .article-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    color: var(--text-light);
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .meta-item i {
+    color: var(--accent-color);
+    width: 16px;
+  }
+
+  .meta-item strong {
+    color: var(--primary-color);
+  }
+
+  .article-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .tag {
+    background: var(--accent-color);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .tag:hover {
+    background: var(--secondary-color);
+    transform: translateY(-2px);
+  }
+
+  /* Article Content */
+  .article-content {
+    padding: 4rem 0;
+  }
+
+  .prose {
+    max-width: 800px;
+    margin: 0 auto;
+    line-height: 1.8;
+    font-size: 1.1rem;
+    color: var(--primary-color);
+  }
+
+  .prose :global(h1),
+  .prose :global(h2),
+  .prose :global(h3),
+  .prose :global(h4),
+  .prose :global(h5),
+  .prose :global(h6) {
+    font-weight: 600;
+    line-height: 1.3;
+    margin: 2.5rem 0 1rem 0;
+    color: var(--primary-color);
+  }
+
+  .prose :global(h1) {
+    font-size: 2.25rem;
+  }
+  .prose :global(h2) {
+    font-size: 1.875rem;
+  }
+  .prose :global(h3) {
+    font-size: 1.5rem;
+  }
+  .prose :global(h4) {
+    font-size: 1.25rem;
+  }
+
+  .prose :global(p) {
+    margin: 1.5rem 0;
+    color: var(--primary-color);
+  }
+
+  .prose :global(ul),
+  .prose :global(ol) {
+    margin: 1.5rem 0;
+    padding-left: 2rem;
+  }
+
+  .prose :global(li) {
+    margin: 0.5rem 0;
+    color: var(--primary-color);
+  }
+
+  .prose :global(blockquote) {
+    border-left: 4px solid var(--accent-color);
+    background: var(--bg-light);
+    padding: 1rem 1.5rem;
+    margin: 2rem 0;
+    font-style: italic;
+    border-radius: 0 8px 8px 0;
+  }
+
+  .prose :global(code) {
+    background: var(--bg-light);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: "SF Mono", Monaco, "Cascadia Code", monospace;
+    font-size: 0.9em;
+    color: var(--accent-color);
+  }
+
+  .prose :global(pre) {
+    background: var(--bg-light);
+    padding: 1.5rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 2rem 0;
+    border: 1px solid var(--border-color);
+  }
+
+  .prose :global(pre code) {
+    background: none;
+    padding: 0;
+    color: var(--primary-color);
+  }
+
+  .prose :global(a) {
+    color: var(--accent-color);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: color 0.2s ease;
+  }
+
+  .prose :global(a:hover) {
+    color: var(--secondary-color);
+  }
+
+  .prose :global(strong) {
+    font-weight: 600;
+    color: var(--primary-color);
+  }
+
+  .prose :global(em) {
+    font-style: italic;
+  }
+
+  /* Article Footer */
+  .article-footer {
+    background: var(--bg-light);
+    padding: 4rem 0;
+    text-align: center;
+  }
+
+  .article-footer-content h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+  }
+
+  .article-footer-content p {
+    color: var(--text-light);
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+  }
+
+  .btn-primary {
+    background: var(--accent-color);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: var(--secondary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  .btn-secondary {
+    background: var(--card-bg);
+    color: var(--primary-color);
+    border: 2px solid var(--border-color);
+  }
+
+  .btn-secondary:hover {
+    background: var(--bg-light);
+    border-color: var(--accent-color);
+    transform: translateY(-2px);
+  }
+
+  /* Fade-in Animation */
+  .fade-in {
+    opacity: 0;
+    transform: translateY(30px);
+    transition:
+      opacity 0.6s ease,
+      transform 0.6s ease;
+  }
+
+  .fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .article-header {
+      padding: 8rem 0 3rem;
+    }
+
+    .article-header-content h1 {
+      font-size: 2.25rem;
+    }
+
+    .article-subtitle {
+      font-size: 1.1rem;
+    }
+
+    .article-meta {
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .container {
+      padding: 0 1rem;
+    }
+
+    .prose {
+      font-size: 1rem;
+    }
+
+    .prose :global(h1) {
+      font-size: 1.875rem;
+    }
+    .prose :global(h2) {
+      font-size: 1.5rem;
+    }
+    .prose :global(h3) {
+      font-size: 1.25rem;
+    }
+
+    .footer-links {
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .btn {
+      width: 100%;
+      justify-content: center;
+      max-width: 300px;
+    }
+  }
+</style>
