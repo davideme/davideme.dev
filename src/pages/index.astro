@@ -1,6 +1,9 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Navigation from '../components/Navigation.astro';
+import { getFeaturedArticles } from '../utils/articles';
+
+const featuredArticles = await getFeaturedArticles();
 ---
 
 <Layout title="Davide Mendolia - CTO & Head of Engineering">
@@ -272,6 +275,58 @@ import Navigation from '../components/Navigation.astro';
             </div>
         </div>
     </section>
+
+    <!-- Thought Leadership Section -->
+    {featuredArticles.length > 0 && (
+    <section id="thought-leadership" class="thought-leadership">
+        <div class="container">
+            <h2 class="section-title fade-in">Thought Leadership</h2>
+            <p class="section-subtitle fade-in">Insights on engineering, leadership, and building scalable systems</p>
+            
+            <div class="articles-grid">
+                {featuredArticles.slice(0, 3).map((article) => (
+                <article class="article-card fade-in">
+                    <div class="article-icon">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <h3>
+                        <a href={`/articles/${article.id}`}>{article.data.title}</a>
+                    </h3>
+                    {article.data.description && (
+                        <p class="article-description">{article.data.description}</p>
+                    )}
+                    <div class="article-meta">
+                        <span class="author">by {article.data.author}</span>
+                        {article.data.publishDate && (
+                            <time datetime={article.data.publishDate.toISOString()}>
+                                {article.data.publishDate.toLocaleDateString('en-US', { 
+                                    year: 'numeric', 
+                                    month: 'short', 
+                                    day: 'numeric' 
+                                })}
+                            </time>
+                        )}
+                    </div>
+                    {article.data.tags && article.data.tags.length > 0 && (
+                        <div class="article-tags">
+                            {article.data.tags.slice(0, 3).map((tag) => (
+                                <span class="tag">{tag}</span>
+                            ))}
+                        </div>
+                    )}
+                </article>
+                ))}
+            </div>
+            
+            <div class="view-all fade-in">
+                <a href="/articles" class="btn btn-secondary">
+                    <i class="fas fa-arrow-right"></i>
+                    View all articles
+                </a>
+            </div>
+        </div>
+    </section>
+    )}
 
     <!-- Contact Section -->
     <section id="contact" class="contact">
