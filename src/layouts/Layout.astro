@@ -427,6 +427,54 @@ section {
     line-height: 1.5;
 }
 
+/* How I Help Section */
+.help-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+}
+
+.help-card {
+    background: var(--card-bg);
+    padding: 2rem;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 20px var(--shadow-color);
+    transition: all 0.3s ease;
+}
+
+.help-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px var(--shadow-hover);
+    border-color: var(--accent-color);
+}
+
+.help-card .icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--accent-color) 0%, #004a99 100%);
+    color: white;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.help-card h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.help-card p {
+    color: var(--text-light);
+    line-height: 1.7;
+    font-size: 0.95rem;
+}
+
 /* Achievements Section */
 .achievements {
     background: var(--bg-light);
@@ -611,10 +659,14 @@ footer p {
         grid-template-columns: 1fr;
     }
     
+    .help-grid {
+        grid-template-columns: 1fr;
+    }
+
     .achievements-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .case-study-meta {
         grid-template-columns: 1fr;
     }
