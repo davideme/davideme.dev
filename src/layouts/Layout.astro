@@ -26,8 +26,11 @@ const { title, description = "Davide Mendolia - CTO & Head of Engineering with 2
     </script>
 </head>
 <body>
+    <!-- Wave animation container -->
+    <div id="wave-container" class="wave-container"></div>
+
     <slot />
-    
+
     <script>
         // Theme management
         function initTheme() {
@@ -71,6 +74,126 @@ const { title, description = "Davide Mendolia - CTO & Head of Engineering with 2
                 const newTheme = e.matches ? 'dark' : 'light';
                 document.documentElement.setAttribute('data-theme', newTheme);
                 updateThemeToggle(newTheme);
+            }
+        });
+
+        // Wave animation management
+        let waveAnimationActive = false;
+        let animationFrameId = null;
+
+        function initWaves() {
+            const savedWaveState = localStorage.getItem('wavesEnabled') === 'true';
+            if (savedWaveState) {
+                enableWaves();
+            }
+            updateWavesToggle(savedWaveState);
+        }
+
+        function toggleWaves() {
+            waveAnimationActive = !waveAnimationActive;
+
+            if (waveAnimationActive) {
+                enableWaves();
+            } else {
+                disableWaves();
+            }
+
+            localStorage.setItem('wavesEnabled', waveAnimationActive);
+            updateWavesToggle(waveAnimationActive);
+        }
+
+        function enableWaves() {
+            waveAnimationActive = true;
+            const container = document.getElementById('wave-container');
+            if (container) {
+                container.classList.add('active');
+                createWaves();
+                animateWaves();
+            }
+        }
+
+        function disableWaves() {
+            waveAnimationActive = false;
+            const container = document.getElementById('wave-container');
+            if (container) {
+                container.classList.remove('active');
+                container.innerHTML = '';
+            }
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+        }
+
+        function updateWavesToggle(enabled) {
+            const navWavesToggle = document.getElementById('nav-waves-toggle');
+            if (navWavesToggle) {
+                navWavesToggle.setAttribute('data-waves', enabled ? 'active' : 'inactive');
+            }
+        }
+
+        function createWaves() {
+            const container = document.getElementById('wave-container');
+            if (!container) return;
+
+            container.innerHTML = '';
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('viewBox', '0 0 400 200');
+            svg.setAttribute('preserveAspectRatio', 'none');
+            svg.style.width = '100%';
+            svg.style.height = '100%';
+
+            const numLayers = 4;
+
+            for (let i = 0; i < numLayers; i++) {
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('class', `wave-path wave-${i}`);
+                svg.appendChild(path);
+            }
+
+            container.appendChild(svg);
+        }
+
+        function generateWavePath(yBase, amplitude, frequency, phase) {
+            let d = 'M 0 200 ';
+            for (let x = 0; x <= 400; x += 10) {
+                const y = yBase + Math.sin(x * frequency * 10 + phase) * amplitude;
+                d += `L ${x} ${y} `;
+            }
+            d += 'L 400 200 Z';
+            return d;
+        }
+
+        function animateWaves() {
+            if (!waveAnimationActive) return;
+
+            const container = document.getElementById('wave-container');
+            if (!container) return;
+
+            const paths = container.querySelectorAll('path');
+            const time = Date.now() * 0.001;
+
+            paths.forEach((path, i) => {
+                const yBase = 120 + i * 25;
+                const amplitude = 15 + i * 5;
+                const frequency = 0.015;
+                const phase = time * (0.3 + i * 0.1);
+
+                path.setAttribute('d', generateWavePath(yBase, amplitude, frequency, phase));
+            });
+
+            animationFrameId = requestAnimationFrame(animateWaves);
+        }
+
+        // Initialize waves on page load
+        initWaves();
+
+        // Add waves toggle listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            const navWavesToggle = document.getElementById('nav-waves-toggle');
+
+            if (navWavesToggle) {
+                navWavesToggle.addEventListener('click', toggleWaves);
             }
         });
 
@@ -251,6 +374,97 @@ nav {
 .nav-theme-toggle[data-theme='dark'] .dark-icon {
     opacity: 1;
     transform: rotate(0deg);
+}
+
+.nav-waves-toggle {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: var(--card-bg);
+    color: var(--primary-color);
+    cursor: pointer;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    margin-left: 0.5rem;
+}
+
+.nav-waves-toggle:hover {
+    background: var(--bg-light);
+    transform: scale(1.05);
+}
+
+.nav-waves-toggle[data-waves='active'] {
+    background: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}
+
+.nav-waves-toggle[data-waves='active']:hover {
+    background: #0056b3;
+}
+
+/* Wave animation container */
+.wave-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 200px;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.wave-container.active {
+    opacity: 1;
+}
+
+.wave-container svg {
+    width: 100%;
+    height: 100%;
+}
+
+/* Wave paths with theme-aware colors */
+.wave-path {
+    transition: fill 0.3s ease;
+}
+
+:root .wave-path.wave-0 {
+    fill: rgba(60, 100, 140, 0.08);
+}
+
+:root .wave-path.wave-1 {
+    fill: rgba(60, 100, 140, 0.10);
+}
+
+:root .wave-path.wave-2 {
+    fill: rgba(60, 100, 140, 0.12);
+}
+
+:root .wave-path.wave-3 {
+    fill: rgba(60, 100, 140, 0.14);
+}
+
+[data-theme='dark'] .wave-path.wave-0 {
+    fill: rgba(70, 130, 180, 0.06);
+}
+
+[data-theme='dark'] .wave-path.wave-1 {
+    fill: rgba(70, 130, 180, 0.08);
+}
+
+[data-theme='dark'] .wave-path.wave-2 {
+    fill: rgba(70, 130, 180, 0.10);
+}
+
+[data-theme='dark'] .wave-path.wave-3 {
+    fill: rgba(70, 130, 180, 0.12);
 }
 
 .logo {
@@ -692,7 +906,8 @@ footer p {
         justify-content: center;
     }
     
-    .nav-theme-toggle {
+    .nav-theme-toggle,
+    .nav-waves-toggle {
         width: 35px;
         height: 35px;
         font-size: 0.9rem;
