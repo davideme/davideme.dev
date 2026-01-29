@@ -156,8 +156,11 @@ const { title, description = "Davide Mendolia - CTO & Head of Engineering with 2
 
         function generateWavePath(yBase, amplitude, frequency, phase) {
             let d = 'M 0 200 ';
-            for (let x = 0; x <= 400; x += 10) {
-                const y = yBase + Math.sin(x * frequency * 10 + phase) * amplitude;
+            const numPoints = 40; // Number of points along the wave
+            for (let i = 0; i <= numPoints; i++) {
+                const x = (i / numPoints) * 400; // Scale to viewBox width
+                const normalizedX = i / numPoints; // 0 to 1
+                const y = yBase + Math.sin(normalizedX * frequency * Math.PI * 2 + phase) * amplitude;
                 d += `L ${x} ${y} `;
             }
             d += 'L 400 200 Z';
@@ -176,7 +179,7 @@ const { title, description = "Davide Mendolia - CTO & Head of Engineering with 2
             paths.forEach((path, i) => {
                 const yBase = 120 + i * 25;
                 const amplitude = 15 + i * 5;
-                const frequency = 0.015;
+                const frequency = 2 + i * 0.5; // Number of wave cycles
                 const phase = time * (0.3 + i * 0.1);
 
                 path.setAttribute('d', generateWavePath(yBase, amplitude, frequency, phase));
