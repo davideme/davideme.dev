@@ -15,13 +15,15 @@ const currentPath = Astro.url.pathname;
                 <li><a href="/articles" class={currentPath.startsWith('/articles') ? 'active' : ''}>Articles</a></li>
                 <li><a href="/#contact">Contact</a></li>
             </ul>
-            <button id="nav-theme-toggle" class="nav-theme-toggle" aria-label="Toggle theme">
-                <i class="fas fa-sun light-icon"></i>
-                <i class="fas fa-moon dark-icon"></i>
-            </button>
-            <button id="nav-waves-toggle" class="nav-waves-toggle" aria-label="Toggle wave animation">
-                <i class="fas fa-water"></i>
-            </button>
+            <div class="nav-controls">
+                <button id="nav-theme-toggle" class="nav-theme-toggle" aria-label="Toggle theme">
+                    <i class="fas fa-sun light-icon"></i>
+                    <i class="fas fa-moon dark-icon"></i>
+                </button>
+                <button id="nav-waves-toggle" class="nav-waves-toggle" aria-label="Toggle wave animation">
+                    <i class="fas fa-water"></i>
+                </button>
+            </div>
         </div>
     </div>
 </nav>
