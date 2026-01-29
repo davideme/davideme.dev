@@ -59,6 +59,20 @@ const { title, description = "Davide Mendolia - CTO & Head of Engineering with 2
         // Initialize theme on page load
         initTheme();
 
+        // Adjust hero section padding based on nav height
+        function adjustHeroForNav() {
+            const nav = document.querySelector('nav');
+            const hero = document.querySelector('.hero');
+            if (nav && hero) {
+                const navHeight = nav.offsetHeight;
+                hero.style.paddingTop = `${navHeight + 40}px`; // Add 40px buffer
+            }
+        }
+
+        // Run on load and resize
+        adjustHeroForNav();
+        window.addEventListener('resize', adjustHeroForNav);
+
         // Add theme toggle listeners
         document.addEventListener('DOMContentLoaded', () => {
             const navThemeToggle = document.getElementById('nav-theme-toggle');
