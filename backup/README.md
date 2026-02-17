@@ -49,7 +49,7 @@ davideme.dev/
 
 ## 📧 Contact
 
-- **Email**: [d.mendolia82@gmail.com](mailto:d.mendolia82@gmail.com)
+- **Email**: [contact@davideme.com](mailto:contact@davideme.com)
 - **LinkedIn**: [linkedin.com/in/dmendolia](https://www.linkedin.com/in/dmendolia/)
 
 ## 📄 License
