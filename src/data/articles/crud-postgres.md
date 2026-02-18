@@ -94,7 +94,7 @@ From the explicit side, the question is: what's the added value of a modern lang
 
 Writing queries easily matters, but you also need to know: when something goes wrong, how fast do you find out? Between your queries and the actual database, there are three things that need to agree with each other:
 
-```
+```text
 Queries  ←→  Table / Entity Definition  ←→  Migration Files
 ```
 
