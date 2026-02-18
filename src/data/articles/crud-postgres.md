@@ -2,7 +2,7 @@
 title: "TypeScript and Kotlin Are the Safest Way to Talk to PostgreSQL. Where Does Your Language Land?"
 author: "Davide Mendolia"
 description: "Comparison of 6 database libraries across TypeScript, Python, Java, C#, Go, and Kotlin for PostgreSQL-backed REST APIs. Only one stack passes all three safety checks."
-publishDate: 2025-09-07
+publishDate: 2026-02-18
 tags:
   [
     "programming-languages",
