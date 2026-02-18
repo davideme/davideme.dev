@@ -545,13 +545,13 @@ nav {
     display: block;
 }
 
-/* nav-menu wraps links + controls; behaves as flex row on desktop */
+/* nav-menu wraps links; flex: 1 so it fills space between logo and controls */
 .nav-menu {
     display: flex;
     align-items: center;
     gap: 2rem;
     flex: 1;
-    justify-content: space-between;
+    justify-content: flex-end;
 }
 
 /* Hero Section */
@@ -954,7 +954,7 @@ footer p {
     }
     
     .nav-container {
-        justify-content: flex-start;
+        justify-content: space-between;
         gap: 0.75rem;
     }
 
@@ -985,12 +985,6 @@ footer p {
         flex-direction: column;
         gap: 0.75rem;
         width: 100%;
-    }
-
-    .nav-controls {
-        width: 100%;
-        border-top: 1px solid var(--border-color);
-        padding-top: 1rem;
     }
 
     .nav-theme-toggle,
