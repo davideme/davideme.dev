@@ -6,24 +6,50 @@ const currentPath = Astro.url.pathname;
 <nav>
     <div class="container">
         <div class="nav-container">
+            <button id="nav-hamburger" class="nav-hamburger" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="nav-menu">
+                <i class="fas fa-bars-staggered open-icon"></i>
+                <i class="fas fa-xmark close-icon"></i>
+            </button>
             <a href="/" class="logo">DM</a>
-            <ul class="nav-links">
-                <li><a href="/" class={currentPath === '/' ? 'active' : ''}>Home</a></li>
-                <li><a href="/#about">About</a></li>
-                <li><a href="/#achievements">Achievements</a></li>
-                <li><a href="/#case-studies">Case Studies</a></li>
-                <li><a href="/articles" class={currentPath.startsWith('/articles') ? 'active' : ''}>Articles</a></li>
-                <li><a href="/#contact">Contact</a></li>
-            </ul>
+            <div id="nav-menu" class="nav-menu">
+                <ul class="nav-links">
+                    <li><a href="/" class={currentPath === '/' ? 'active' : ''}>Home</a></li>
+                    <li><a href="/#about">About</a></li>
+                    <li><a href="/#achievements">Achievements</a></li>
+                    <li><a href="/#case-studies">Case Studies</a></li>
+                    <li><a href="/articles" class={currentPath.startsWith('/articles') ? 'active' : ''}>Articles</a></li>
+                    <li><a href="/#contact">Contact</a></li>
+                </ul>
+            </div>
             <div class="nav-controls">
                 <button id="nav-theme-toggle" class="nav-theme-toggle" aria-label="Toggle theme">
                     <i class="fas fa-sun light-icon"></i>
                     <i class="fas fa-moon dark-icon"></i>
                 </button>
                 <button id="nav-waves-toggle" class="nav-waves-toggle" aria-label="Toggle wave animation">
-                    <i class="fas fa-water"></i>
+                    <i class="fas fa-droplet"></i>
                 </button>
             </div>
         </div>
     </div>
 </nav>
+
+<script>
+    const hamburger = document.getElementById('nav-hamburger');
+    const navMenu = document.getElementById('nav-menu');
+
+    hamburger?.addEventListener('click', () => {
+        const isOpen = navMenu?.classList.toggle('open');
+        hamburger.setAttribute('aria-expanded', String(isOpen));
+        hamburger.classList.toggle('open', isOpen);
+    });
+
+    // Close menu when a nav link is clicked (useful for anchor links on same page)
+    navMenu?.querySelectorAll('.nav-links a').forEach(link => {
+        link.addEventListener('click', () => {
+            navMenu.classList.remove('open');
+            hamburger?.classList.remove('open');
+            hamburger?.setAttribute('aria-expanded', 'false');
+        });
+    });
+</script>
