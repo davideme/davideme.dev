@@ -521,37 +521,28 @@ nav {
 /* Hamburger button - hidden on desktop */
 .nav-hamburger {
     display: none;
-    flex-direction: column;
+    align-items: center;
     justify-content: center;
-    gap: 5px;
     width: 40px;
     height: 40px;
     background: none;
     border: none;
     cursor: pointer;
     padding: 4px;
+    color: var(--primary-color);
+    font-size: 1.2rem;
 }
 
-.hamburger-bar {
+.nav-hamburger .close-icon {
+    display: none;
+}
+
+.nav-hamburger.open .open-icon {
+    display: none;
+}
+
+.nav-hamburger.open .close-icon {
     display: block;
-    width: 24px;
-    height: 2px;
-    background: var(--primary-color);
-    border-radius: 2px;
-    transition: transform 0.3s ease, opacity 0.3s ease;
-    transform-origin: center;
-}
-
-.nav-hamburger.open .hamburger-bar:nth-child(1) {
-    transform: translateY(7px) rotate(45deg);
-}
-
-.nav-hamburger.open .hamburger-bar:nth-child(2) {
-    opacity: 0;
-}
-
-.nav-hamburger.open .hamburger-bar:nth-child(3) {
-    transform: translateY(-7px) rotate(-45deg);
 }
 
 /* nav-menu wraps links + controls; behaves as flex row on desktop */
