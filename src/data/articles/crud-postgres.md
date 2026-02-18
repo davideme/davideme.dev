@@ -84,7 +84,7 @@ These two represent the endpoints of a spectrum. Here's where everyone falls:
 
 ### What to choose?
 
-The goal of choosing a database library isn't to make simple CRUD operations — in that case using a tool like [Strapi](https://strapi.io/) or [Directus](https://directus.io/) is more appropriate. The real value of these libraries comes from handling complex queries and giving you control over performance.
+The goal of choosing a database library isn't to make simple CRUD operations; in that case using a tool like [Strapi](https://strapi.io/) or [Directus](https://directus.io/) is more appropriate. The real value of these libraries comes from handling complex queries and giving you control over performance.
 
 From the implicit side, JPA looks simple at first but becomes difficult to work with in real-world usage, where complex or custom queries quickly push you beyond what method-name conventions can express. C# and TypeScript handle that complexity more gracefully.
 
@@ -92,7 +92,7 @@ From the explicit side, the question is: what's the added value of a modern lang
 
 ## Safety: Three Things That Need to Agree
 
-Being easy to write queries is only half the story. You also need to know: when something goes wrong, how fast do you find out? Between your queries and the actual database, there are three things that need to agree with each other:
+Writing queries easily matters, but you also need to know: when something goes wrong, how fast do you find out? Between your queries and the actual database, there are three things that need to agree with each other:
 
 ```
 Queries  ←→  Table / Entity Definition  ←→  Migration Files
@@ -153,7 +153,7 @@ One final nuance: compile-time safety catches structural errors, not logic error
 
 ## Basic Features: Soft Deletes and Timestamps
 
-Two features every production API needs. How each stack handles them reinforces the explicit-vs-implicit divide and shows that the implicit approach isn't always less work.
+Soft deletes and timestamps are two features you'll need in any production API. How each stack handles them reinforces the explicit-vs-implicit divide and shows that the implicit approach isn't always less work.
 
 ### Soft Delete Filtering
 
@@ -181,7 +181,7 @@ Java and C# do it once, globally. Everyone else does it per query. The automatic
 
 Java and TypeScript manage timestamps in the application layer, which makes them portable across databases. Kotlin, Python, Go, and C# delegate `updated_at` to a PostgreSQL trigger. That's more reliable since you can't forget it, but less portable and invisible to someone reading only the application code.
 
-Again, the choice isn't "good vs. bad" but "where does the behavior live, and can you find it when something goes wrong?"
+The tradeoff isn't about correctness, it's about where the behavior lives and how easy it is to find when something goes wrong.
 
 The full project is available on [GitHub](https://github.com/davideme/lamp-control-api-reference).
 
