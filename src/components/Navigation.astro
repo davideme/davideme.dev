@@ -6,12 +6,12 @@ const currentPath = Astro.url.pathname;
 <nav>
     <div class="container">
         <div class="nav-container">
-            <a href="/" class="logo">DM</a>
             <button id="nav-hamburger" class="nav-hamburger" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="nav-menu">
                 <span class="hamburger-bar"></span>
                 <span class="hamburger-bar"></span>
                 <span class="hamburger-bar"></span>
             </button>
+            <a href="/" class="logo">DM</a>
             <div id="nav-menu" class="nav-menu">
                 <ul class="nav-links">
                     <li><a href="/" class={currentPath === '/' ? 'active' : ''}>Home</a></li>
