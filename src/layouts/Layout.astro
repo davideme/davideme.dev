@@ -283,7 +283,8 @@ const { title, description = "Davide Mendolia - CTO & Head of Engineering with 2
     --primary-color: #1D1D1F;
     --secondary-color: #515154;
     --accent-color: #0071E3;
-    --text-light: #86868B;
+    --accent-hover: #0077ED;
+    --text-light: #6E6E73;
     --bg-light: #F5F5F7;
     --border-color: #D2D2D7;
     --bg-primary: #FFFFFF;
@@ -301,6 +302,7 @@ const { title, description = "Davide Mendolia - CTO & Head of Engineering with 2
     --primary-color: #F5F5F7;
     --secondary-color: #A1A1A6;
     --accent-color: #2997FF;
+    --accent-hover: #409CFF;
     --text-light: #636366;
     --bg-light: #1C1C1E;
     --border-color: #3A3A3C;
@@ -568,7 +570,7 @@ nav {
     color: #FFFFFF;
 }
 
-.btn-primary:hover { background: #0077ED; }
+.btn-primary:hover { background: var(--accent-hover); }
 
 .btn-secondary {
     background: transparent;
@@ -1026,7 +1028,7 @@ main table, .prose table, article table {
 }
 
 .prose img[src*=".gif"]::before { content: "Loading animation..."; }
-.prose img:not([loading="lazy"])::before, .prose img[complete]::before { opacity: 0; }
+.prose img:not([loading="lazy"])::before, .prose img.loaded::before { opacity: 0; }
 
 @keyframes loading {
     0% { background-position: -200% 0; }
