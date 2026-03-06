@@ -95,6 +95,7 @@ The practical picture for the languages I've been comparing([more details](crud-
 | **Java**       | Spring Boot  | Thread pool + `CompletableFuture` | JPA (blocking, sync)                |
 | **Kotlin**     | Ktor         | Coroutines + `suspend fun`        | Exposed (`newSuspendedTransaction`) |
 | **C#**         | ASP.NET Core | TAP + `async Task<T>`             | EF Core async LINQ                  |
+
 My general assumption is that this should be roughly the podium: 
 1. True Parallelism + Non-blocking I/O: Go and C#
 2. True Parallelism + Blocking I/O: Java and Kotlin
@@ -128,7 +129,7 @@ Dive into the podium results.
 
 For latency, the language and the framework do not matter. For throughput, Go wins, but TypeScript and Kotlin are right behind it, which is the real surprise. Single-threaded and blocking I/O can both compete with true parallelism on a 1 CPU container.
 
-The two outliers are the ones worth investigating next. C# and Python couldn't reach comparable throughput — but it's not obvious why. Is it the ORM doing extra queries (read before write)? Is it the GIL in Python's case? Is it a container sizing issue? Is it the runtime itself? Before drawing conclusions about the language, those questions need answers.
+The two outliers are the ones worth investigating next. C# and Python couldn't reach comparable throughput — but it's not obvious why. Is it the ORM doing extra queries (read before write)? Is it the [^3]GIL in Python's case? Is it a container sizing issue? Is it the runtime itself? Before drawing conclusions about the language, those questions need answers.
 
 If you want to dig into the current implementations, the full code is on [GitHub](https://github.com/davideme/lamp-control-api-reference).
 
