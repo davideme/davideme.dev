@@ -62,7 +62,7 @@ So a simple load that do a series of CRUD operations in memory, that tell me the
 
 Runner K6, 50 Request per second, during 300 seconds, on 1 CPU, 512MB of RAM.
 
-![[crud-performance-k6-1.gif]]
+![K6 Latency Benchmark](crud-performance-k6-1.gif)
 
 For something that simple, It's does not matter everything is able to respond under 10ms 95% of the time. Yes, there are some fluke(probably JIT compiling), in some language that I'm sure we can optimize or get around it. But my general first taught it's no matter if you are using Go or Python, the bottleneck is not in the pure language.
 
@@ -72,7 +72,7 @@ For something that simple, It's does not matter everything is able to respond un
 
 I decided to graph also the CPU used, and I can see clearly 3 groups.
 
-![[crud-performance-k6-2.gif]]
+![K6 CPU Usage Benchmark](crud-performance-k6-2.gif)
 Note: the down curve is when the benchmark stop 4:29PM.
 
 A) Go and Typescript: < 9% of CPU usage and steady.
