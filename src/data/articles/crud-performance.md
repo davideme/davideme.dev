@@ -1,7 +1,7 @@
 ---
-title: "Five Performance Myths That Keep Shaping Bad Decisions"
+title: Performance Myths That Keep Shaping Bad Decisions
 author: Davide Mendolia
-description: "Low-level is fast. Interpreted is slow. Async is faster. The database is the bottleneck. These assumptions feel like engineering wisdom. Most of them are wrong, or at least far more complicated than they sound."
+description: Low-level is fast. Interpreted is slow. Async is faster. The database is the bottleneck. These assumptions feel like engineering wisdom. Most of them are wrong, or at least far more complicated than they sound.
 publishDate: 2026-02-27
 tags:
   - programming-languages
@@ -95,33 +95,44 @@ The practical picture for the languages I've been comparing([more details](crud-
 | **Java**       | Spring Boot  | Thread pool + `CompletableFuture` | JPA (blocking, sync)                |
 | **Kotlin**     | Ktor         | Coroutines + `suspend fun`        | Exposed (`newSuspendedTransaction`) |
 | **C#**         | ASP.NET Core | TAP + `async Task<T>`             | EF Core async LINQ                  |
-
+My general assumption is that this should be roughly the podium: 
 1. True Parallelism + Non-blocking I/O: Go and C#
 2. True Parallelism + Blocking I/O: Java and Kotlin
 3. Single execution context + Non-blocking I/O: TypeScript and Python
 
-My goal was see how many request of CRUD operations the API can handle keeping response time under 300ms.
+### Benchmark
 
-And the results are:
+Same machine in Cloud Run for this run, with a Postgres Cloud SQL instance(2 CPU, 8 GB Ram), that should plenty to not be the bottleneck.
+How many request of CRUD operations the API can handle keeping response time under 300ms.
 
-1. Go with 500 Request per second
-2. TypeScript and Kotlin with 400 Request per second
-3. Java with 300 Request per second
+[Insert here graph]
 
-Outliers are C# and Python, I tried a lot of things for Python, I didn't manage to get to at least 160 RPS, maybe using Free-threading in Python 3.14 or PyPy, but I wanted to stick to use the main runtime and when possible config by default.
-For C# .Net 10 was release in November 2025 and with JIT improvements could maybe be on par with at least Java.
+Results:
 
-Now let's look at the podium.
+1. Go handle 500 Request per second
+2. TypeScript and Kotlin handle 400 Request per second
+3. Java handle 300 Request per second
+
+I could not get relevant results for Python and C#. Using Python 3.12 and .NET 8.0, is it an issue with the runtime, an issue with how each language as SQL Queries, are they not meant to run on small container, or it's really a problem of the language? We need to dig deeper in the future.
+
+Dive into the podium results.
 1) Go is first without a sweat as expected fast and good at parallelism.
-2) Kotlin and Javascript/Typescript are a bit the surprise here, Kotlin is using JDBC and blocking thread per connections, and Node.js is using the event loop to handle request.
-3) Java as third place, is expected between JPA blocking the thread-pool and being and ORM, meaning it require read before write, so need more queries to do the same operations.
+2) Kotlin and Javascript/Typescript are a bit the surprise here:
+	- Kotlin is using JDBC for database connection meaning blocking the thread that the coroutine is running. 
+	- Typescript/Node.js is using a single threaded event loop, but the I/O operation is giving back time to the scheduler.
+3) Java as third place, is expected between JDBC blocking the thread-pool and being and ORM, meaning it require read before write, so need more queries to do the same operations.
+
+**DEBUNKED**: At least for non-go results. Single Threaded it's has fast and multi threaded, at least on containers with 1 CPU. And blocking I/O can be as fast as blocking I/O. 🤯
 
 ## Conclusion
 
-Node.js and the JVM are not slow, for this use case. 🤯
+Even if it's possible now with Claude Code or Codex to rewrite your codebase from one language to the other, is it worth it, maybe just optimising your current stack is enough.
 
-Why is C# and Java slow? Maybe because of the ORM natures they are doing more queries(read before writes)
-Why is Python slow? Maybe the [^3]GIL, maybe not JIT ? These are coming to Python 3.14.
+And which one to choose, if starting from a blank slate, think more about what is your use case, than, thinking everything is universally good.
+
+## What's next ?
+Why is C# slow? Maybe because of the ORM natures they are doing more queries(read before writes)
+Why is Python slow? Maybe the [^3]GIL, maybe not JIT ? These are coming to Python 3.14 but not enabled by default.
 
 Next steps would be invest in proper OpenTelemetry and figure out where the time is spent.
 But even there, is worth, all the advantages that bring some language are they worth the money spent in CPU and containers, I'll be digging further in these advance usage case of SQL Lib in the future, and see if I can make a more educated choice.
