@@ -95,6 +95,7 @@ The practical picture for the languages I've been comparing([more details](crud-
 | **Java**       | Spring Boot  | Thread pool + `CompletableFuture` | JPA (blocking, sync)                |
 | **Kotlin**     | Ktor         | Coroutines + `suspend fun`        | Exposed (`newSuspendedTransaction`) |
 | **C#**         | ASP.NET Core | TAP + `async Task<T>`             | EF Core async LINQ                  |
+
 My general assumption is that this should be roughly the podium: 
 1. True Parallelism + Non-blocking I/O: Go and C#
 2. True Parallelism + Blocking I/O: Java and Kotlin
