@@ -1,5 +1,5 @@
 ---
-title: Performance Myths That Keep Shaping Bad Decisions
+title: Is Go Actually Faster? Benchmarking Six Languages for Latency and Throughput.
 author: Davide Mendolia
 description: Low-level is fast. Interpreted is slow. Async is faster. The database is the bottleneck. These assumptions feel like engineering wisdom. Most of them are wrong, or at least far more complicated than they sound.
 publishDate: 2026-02-27
@@ -126,16 +126,21 @@ Dive into the podium results.
 
 ## Conclusion
 
-Even if it's possible now with Claude Code or Codex to rewrite your codebase from one language to the other, is it worth it, maybe just optimising your current stack is enough.
+For latency, the language and the framework do not matter. For throughput, Go wins, but TypeScript and Kotlin are right behind it, which is the real surprise. Single-threaded and blocking I/O can both compete with true parallelism on a 1 CPU container.
 
-And which one to choose, if starting from a blank slate, think more about what is your use case, than, thinking everything is universally good.
+The two outliers are the ones worth investigating next. C# and Python couldn't reach comparable throughput — but it's not obvious why. Is it the ORM doing extra queries (read before write)? Is it the GIL in Python's case? Is it a container sizing issue? Is it the runtime itself? Before drawing conclusions about the language, those questions need answers.
 
-## What's next ?
-Why is C# slow? Maybe because of the ORM natures they are doing more queries(read before writes)
-Why is Python slow? Maybe the [^3]GIL, maybe not JIT ? These are coming to Python 3.14 but not enabled by default.
+If you want to dig into the current implementations, the full code is on [GitHub](https://github.com/davideme/lamp-control-api-reference).
 
-Next steps would be invest in proper OpenTelemetry and figure out where the time is spent.
-But even there, is worth, all the advantages that bring some language are they worth the money spent in CPU and containers, I'll be digging further in these advance usage case of SQL Lib in the future, and see if I can make a more educated choice.
+## What's next?
+
+The next step is adding proper OpenTelemetry instrumentation to see exactly where the time is spent — how much is framework overhead, how much is query execution, how much is serialization. That should make the C# and Python results explainable rather than just anomalous.
+
+Beyond that, a few questions I want to explore:
+
+- Does the throughput ranking hold when moving to a more complex workload joins, transactions?
+- Python 3.14 introduced a stable free-threaded mode (no GIL) as an option. Does it close the gap?
+- Is the Kotlin result repeatable with a non-blocking driver like R2DBC instead of JDBC?
 
 [^1]: Just In Time
 
