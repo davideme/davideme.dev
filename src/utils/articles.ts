@@ -25,6 +25,12 @@ export async function getArticlesByTag(tag: string): Promise<Article[]> {
   return articles.filter((article) => (article.data.tags ?? []).includes(tag));
 }
 
+export async function getDraftArticles(): Promise<Article[]> {
+  return getCollection("articles", ({ data }) => {
+    return data.draft === true;
+  });
+}
+
 export function getAllTags(articles: Article[]): string[] {
   const tags = new Set<string>();
   articles.forEach((article) => {
