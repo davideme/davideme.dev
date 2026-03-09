@@ -75,9 +75,9 @@ I decided to graph also the CPU used, and I can see clearly 3 groups.
 ![K6 CPU Usage Benchmark](crud-performance-k6-2.gif)
 Note: the down curve is when the benchmark stop 4:29PM.
 
-A) Go and Typescript: < 9% of CPU usage and steady.
-B) Java, Kotlin and C#: They start 20% or even 40% but quickly stabilize to < 14%
-C) Python: Steady at 21%.
+1. Go and Typescript: < 9% of CPU usage and steady.
+2. Java, Kotlin and C#: They start 20% or even 40% but quickly stabilize to < 14%
+3. Python: Steady at 21%.
 
 Is this any indicator where the bottleneck will be? Maybe yes, maybe it's just how the different implementation of the in memory storage each language. Let's continue our investigation, this alone it's not enough.
 
