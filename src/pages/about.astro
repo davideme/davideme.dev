@@ -1,0 +1,188 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.astro';
+---
+
+<Layout
+    title="About — Davide Mendolia"
+    description="Engineering leadership for the new era of software development. After 8 years at Karumi and 4 years leading engineering at topi, I help VC-backed companies build software that connects to the real world."
+>
+    <Navigation />
+
+    <!-- Page Header -->
+    <section class="hero page-header">
+        <div class="container">
+            <div class="hero-content fade-in">
+                <h1>About</h1>
+                <p class="subtitle">Engineering leadership for the new era of software development.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Now -->
+    <section class="about-section alt-bg">
+        <div class="container">
+            <div class="section-label fade-in">Why Now</div>
+            <h2 class="about-section-title fade-in">We're at an inflection point.</h2>
+            <p class="about-body fade-in">
+                Agentic coding and AI-native development are changing what's possible with a small team. Things that used to require 20 engineers can now be done by 5 with the right technical leadership. This is a new era for product and business development — and the right moment to go wider.
+            </p>
+        </div>
+    </section>
+
+    <!-- Why Me -->
+    <section class="about-section">
+        <div class="container">
+            <div class="section-label fade-in">Why Me</div>
+            <h2 class="about-section-title fade-in">A rare ability to operate at both ends of the spectrum.</h2>
+            <div class="about-body fade-in">
+                <p>After 8 years at Karumi building software for companies of all sizes, and 4 years leading engineering at topi, I've developed a rare ability to operate at both ends of the spectrum — small, fast-moving teams and larger, structured organisations. I know the needs of both, and I have my finger on the pulse of where technology is heading.</p>
+                <p>Making software at the service of businesses is what drives me.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Who I Help -->
+    <section class="about-section alt-bg">
+        <div class="container">
+            <div class="section-label fade-in">Who I Help</div>
+            <h2 class="about-section-title fade-in">Companies where engineering decisions have real-world consequences.</h2>
+            <div class="help-cards fade-in">
+                <div class="help-card-item">
+                    <p>VC-backed companies building software that connects to the real world. Not pure SaaS — companies where the product has a physical dimension, where engineering decisions have direct operational consequences.</p>
+                </div>
+                <div class="help-card-item secondary">
+                    <p>Also open to self-funded and bootstrapped companies at the right stage.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- What I Deliver -->
+    <section class="about-section">
+        <div class="container">
+            <div class="section-label fade-in">What I Deliver</div>
+            <h2 class="about-section-title fade-in">Speed to market.</h2>
+            <p class="about-body fade-in">
+                The strategic and technical clarity to get there without waste — making the right calls early, building with the new era of development tools in mind.
+            </p>
+            <div class="cta-area fade-in">
+                <a href="mailto:contact@davideme.com" class="btn btn-primary">
+                    <i class="fas fa-envelope"></i>
+                    Get in touch
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Davide Mendolia. Built with passion for great engineering.</p>
+        </div>
+    </footer>
+</Layout>
+
+<style>
+/* Page Header */
+.page-header {
+    text-align: left;
+}
+
+.page-header h1 {
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    letter-spacing: -0.04em;
+    line-height: 1.05;
+    margin-bottom: 1.25rem;
+}
+
+.page-header .subtitle {
+    font-size: 1.25rem;
+    color: var(--secondary-color);
+    line-height: 1.6;
+    letter-spacing: -0.015em;
+    max-width: 560px;
+    margin: 0;
+}
+
+/* About Sections */
+.about-section {
+    padding: 100px 0;
+    background: var(--bg-primary);
+}
+
+.about-section.alt-bg {
+    background: var(--bg-light);
+}
+
+.section-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent-color);
+    margin-bottom: 1rem;
+}
+
+.about-section-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    max-width: 680px;
+    margin-bottom: 2rem;
+}
+
+.about-body {
+    max-width: 680px;
+    font-size: 1.0625rem;
+    line-height: 1.75;
+    color: var(--secondary-color);
+}
+
+.about-body p + p {
+    margin-top: 1.25rem;
+}
+
+/* Who I Help cards */
+.help-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    max-width: 880px;
+    margin-top: 0.5rem;
+}
+
+.help-card-item {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 2rem;
+    font-size: 1.0625rem;
+    line-height: 1.75;
+    color: var(--secondary-color);
+    box-shadow: var(--shadow-card);
+}
+
+.help-card-item.secondary {
+    background: transparent;
+    box-shadow: none;
+    border-style: dashed;
+}
+
+/* CTA */
+.cta-area {
+    margin-top: 3rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .page-header h1 { font-size: 2.5rem; }
+    .page-header .subtitle { font-size: 1.0625rem; }
+    .about-section-title { font-size: 1.75rem; }
+    .help-cards { grid-template-columns: 1fr; }
+}
+</style>
