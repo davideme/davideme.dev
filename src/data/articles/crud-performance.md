@@ -109,7 +109,7 @@ Same machine in Cloud Run for this run, with a Postgres Cloud SQL instance(2 CPU
 
 The Goal: How many request of CRUD operations the API can handle keeping response time under 300ms?
 
-![[crud-performance-k6-3.gif]]
+![K6 Request Per Second Benchmark](crud-performance-k6-3.gif)
 
 Results:
 
@@ -129,7 +129,7 @@ The results from Kotlin where not bad, but a bit inconsistent between runs, I'm 
 
 Like for the Latency I started by looking at CPU usage.
 
-![[crud-performance-k6-4.gif]]
+![K6 CPU Usage Benchmark](crud-performance-k6-4.gif)
 
 1. Go with at 50%
 2. Java, Kotlin, Python 60%
@@ -141,7 +141,7 @@ Go at 50% is not CPU bound but I was not able to get consistently higher values 
 
 I continued by looking at the Response Time.
 
-![[crud-performance-k6-5.gif]]
+![K6 Response Time Benchmark](crud-performance-k6-5.gif)
 
 Except Python and Kotlin, everything else had similar response time around 10ms, around 1-2ms slower than the in memory version. It seems that our database was overkill with 2 CPUs and 8GB of ram, even if preloaded with 10.000 rows, it acted more like an memory store than giving db perf, but it's hard to isolate what you are testing.
 
@@ -178,6 +178,8 @@ Beyond that, a few questions I want to explore:
 - Does a multi-CPU container would have change the results?
 - Does the throughput ranking hold when moving to a more complex workload joins, transactions?
 - Is the Java and Kotlin result repeatable with a non-blocking driver like R2DBC instead of JDBC?
+
+## Footnotes
 
 [^1]: Just In Time
 
