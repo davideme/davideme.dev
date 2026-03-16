@@ -75,7 +75,7 @@ I was happily surprised that even for this simple load, everything was able to r
 I decided to graph also the CPU used, and I can see clearly 3 groups.
 
 ![K6 CPU Usage Benchmark](crud-performance-k6-2.gif)
-Note: the down curve is when the benchmark stop 4:29PM.
+Note: the down curve is when the benchmark stopped at 4:29PM.
 
 1. Go and Typescript: < 9% of CPU usage and steady.
 2. Java, Kotlin and C#: They start 20% or even 40% but quickly stabilize to < 14%
@@ -119,11 +119,11 @@ Results:
 4. Python handles 100 requests per second with a response time of 60ms or less 95% of the time.
 ### Bumps on the road
 
-These results that you are seeing are not from the first run of the benchmark. I spent lot of time trying to get Python at least on the podium, maybe the number of SQL queries was different from other implementations or the version of Python was not optimized for containers. So I upgraded from version 3.12 to 3.14, and nothing. I spent too much time reading about GIL and free threading, I'll revisit this maybe in the future.
+These results that you are seeing are not from the first run of the benchmark. I spent a lot of time trying to get Python at least on the podium, maybe the number of SQL queries was different from other implementations or the version of Python was not optimized for containers. So I upgraded from version 3.12 to 3.14, and nothing. I spent too much time reading about GIL and free threading, I'll revisit this maybe in the future.
 
 Then in my original run, C# was giving closer in the 200 Request per second, but the fix was easy, I upgraded from .NET 8 to .NET 10 and it did the trick.
 
-The results from Kotlin where not bad, but a bit inconsistent between runs, I'm sure we can get it to the level of Java by reviewing a bit the implementation, I'll look at this in the future.
+The results from Kotlin were not bad, but a bit inconsistent between runs, I'm sure we can get it to the level of Java by reviewing a bit the implementation, I'll look at this in the future.
 
 ### Digging deeper
 
@@ -135,7 +135,7 @@ Like for the Latency I started by looking at CPU usage.
 2. Java, Kotlin, Python 60%
 3. C# and Typescript 70%-80%
 
-I was expecting to be CPU bound around 60%, [Cloud Run try to average CPU at 60% on 1 minute windows](https://docs.cloud.google.com/run/docs/about-instance-autoscaling) after that it will queue request on the load balancer and wait CPU decrease or add more instances(disabled in our benchmark).
+I was expecting to be CPU bound around 60%, [Cloud Run try to average CPU at 60% on 1 minute windows](https://docs.cloud.google.com/run/docs/about-instance-autoscaling) after that it will queue requests on the load balancer and wait for CPU to decrease or add more instances (disabled in our benchmark).
 C# and Typescript are maybe spiking over 60% but maybe not sustained.
 Go at 50% is not CPU bound but I was not able to get consistently higher values than 400 RPS, so the bottleneck seems to be elsewhere, if there is a way to squeeze a few more requests from it.
 
