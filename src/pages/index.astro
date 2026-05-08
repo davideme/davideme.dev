@@ -187,6 +187,40 @@ import Navigation from '../components/Navigation.astro';
         </div>
     </section>
 
+    <!-- Products -->
+    <section id="products">
+        <div class="container">
+            <h2 class="section-title fade-in">Products</h2>
+            <p class="section-subtitle fade-in">Products I've shipped alongside client work.</p>
+
+            <div class="help-grid">
+                <div class="help-card fade-in">
+                    <div class="icon"><i class="fas fa-shield-alt"></i></div>
+                    <h3>Visus</h3>
+                    <p class="product-tagline">Know who clicks before you trust them.</p>
+                    <p>Link intelligence and fraud detection. Wraps your links with browser fingerprinting and real-time risk scoring to filter bots and bad traffic.</p>
+                    <a href="https://visus.page/" target="_blank" rel="noopener noreferrer" class="product-link">Visit <i class="fas fa-arrow-right"></i></a>
+                </div>
+
+                <div class="help-card fade-in">
+                    <div class="icon"><i class="fas fa-scale-balanced"></i></div>
+                    <h3>License to Build</h3>
+                    <p class="product-tagline">Open-source licenses, by what you're building.</p>
+                    <p>A free cheat sheet that maps OSS license obligations to product types — mobile, web, API, CLI — so teams know which dependencies actually create obligations.</p>
+                    <a href="https://licensetobuild.dev/" target="_blank" rel="noopener noreferrer" class="product-link">Visit <i class="fas fa-arrow-right"></i></a>
+                </div>
+
+                <div class="help-card fade-in">
+                    <div class="icon"><i class="fas fa-lightbulb"></i></div>
+                    <h3>ProductBase</h3>
+                    <p class="product-tagline">From ideas to impact, build what matters.</p>
+                    <p>A home for the unstructured work that happens before you start building software: capture ideas, prioritise with RICE-style scoring, share roadmaps with stakeholders.</p>
+                    <a href="https://productbase.davideme.com/" target="_blank" rel="noopener noreferrer" class="product-link">Visit <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Case Studies -->
     <section id="case-studies">
         <div class="container">
@@ -327,3 +361,35 @@ import Navigation from '../components/Navigation.astro';
         </div>
     </footer>
 </Layout>
+
+<style>
+    .help-card .product-tagline {
+        color: var(--primary-color);
+        font-weight: 500;
+        font-size: 0.9375rem;
+        margin-bottom: 0.75rem;
+        letter-spacing: -0.01em;
+    }
+
+    .product-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin-top: 1.25rem;
+        color: var(--accent-color);
+        font-size: 0.875rem;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        text-decoration: none;
+        transition: gap 0.2s ease, color 0.2s ease;
+    }
+
+    .product-link:hover {
+        color: var(--accent-hover);
+        gap: 0.6rem;
+    }
+
+    .product-link i {
+        font-size: 0.75rem;
+    }
+</style>
