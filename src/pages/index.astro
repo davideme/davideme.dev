@@ -14,11 +14,14 @@ import Navigation from '../components/Navigation.astro';
                 <p class="subtitle">Fractional CTO for seed-to-Series B startups</p>
                 <p class="tagline">I help founders make the right engineering decisions at the right time: from first hire to scalable platform.</p>
                 <div class="cta-buttons">
-                    <a href="mailto:contact@davideme.com" class="btn btn-primary">
+                    <a href="https://calendar.app.google/wDMrmDA9jMf3956e9" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+                        <i class="fas fa-calendar"></i>
+                        Book a call
+                    </a>
+                    <a href="mailto:contact@davideme.com" class="btn btn-secondary">
                         <i class="fas fa-envelope"></i>
                         Get in touch
                     </a>
-               
                 </div>
             </div>
         </div>
@@ -339,8 +342,15 @@ import Navigation from '../components/Navigation.astro';
     <section id="contact" class="contact">
         <div class="container">
             <h2 class="section-title fade-in">Let's Connect</h2>
-            <p class="section-subtitle fade-in">Ready to discuss your next technical challenge or leadership opportunity?</p>
-            
+            <p class="section-subtitle fade-in">The fastest way to see if there is a fit is a 20-minute call. No pitch, no prep needed.</p>
+
+            <div class="contact-booking fade-in">
+                <a href="https://calendar.app.google/wDMrmDA9jMf3956e9" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-large">
+                    <i class="fas fa-calendar"></i>
+                    Book a 20-minute call
+                </a>
+            </div>
+
             <div class="contact-links fade-in">
                 <a href="mailto:contact@davideme.com" class="contact-link">
                     <i class="fas fa-envelope"></i>
@@ -363,6 +373,17 @@ import Navigation from '../components/Navigation.astro';
 </Layout>
 
 <style>
+    .contact-booking {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 2rem;
+    }
+
+    .btn-large {
+        padding: 1rem 2.25rem;
+        font-size: 1rem;
+    }
+
     .help-card .product-tagline {
         color: var(--primary-color);
         font-weight: 500;
