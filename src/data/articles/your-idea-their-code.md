@@ -12,7 +12,7 @@ tags:
   - ip-ownership
   - cloud
 featured: false
-draft: true
+draft: false
 ---
 
 _A practical checklist for founders working with dev shops and product studios in 2026_
