@@ -1,0 +1,240 @@
+---
+title: "Frontend Framework for SaaS"
+author: Davide Mendolia
+description: How to pick a frontend framework for SPAs, dashboards, and e-commerce products with a separate backend API. React, Vue, Angular, Svelte, and Solid compared across hiring, ecosystem, DX, and agentic development.
+publishDate: 2026-06-10
+tags:
+  - frontend
+  - react
+  - vue
+  - angular
+  - svelte
+  - solid
+  - saas
+  - architecture
+featured: false
+draft: true
+---
+
+*Research document, June 2026.*
+
+---
+
+## Scope
+
+This document covers frontend framework selection for: single-page applications (SPAs), progressive web apps (PWAs), dynamic dashboards, and e-commerce platforms. All cases where you have a separate backend API and need a UI layer on top of it.
+
+It does not cover content-driven websites (blogs, marketing sites, docs), desktop apps, or mobile apps, where the trade-offs are different.
+
+---
+
+## Frontend Framework vs. Meta Framework
+
+Before picking a framework, it's worth understanding the split in the landscape.
+
+A **frontend framework** (React, Vue, Svelte, Angular, Solid) handles the UI layer. It runs in the browser and talks to a backend API you manage separately. This is the right choice when your backend is already decided.
+
+A **meta framework** (Next.js, Nuxt, SvelteKit) wraps a frontend framework and adds a server layer: server-side rendering, API routes, middleware, and integrated deployment. These are designed for cases where you want frontend and backend in one repo, or need SEO on public pages.
+
+**For a SaaS with an existing backend, you want a frontend framework.** Meta frameworks introduce a server layer you don't need and couple your frontend to a specific deployment model. Most LLMs default to recommending Next.js without making this distinction, which is worth being aware of.
+
+---
+
+## Industry Usage (2025)
+
+Sources: [Stack Overflow Survey](https://survey.stackoverflow.co/2025/technology#1-web-frameworks-and-technologies) and [State of JS](https://2025.stateofjs.com/en-US/libraries/front-end-frameworks/#front_end_frameworks_ratios).
+
+| Framework | Current Usage | Developer Enthusiasm          |
+| --------- | ------------- | ----------------------------- |
+| React     | 30%           | Declining year over year      |
+| Vue.js    | 19%           | Most stable among the leaders |
+| Angular   | 17%           | Declining year over year      |
+| Svelte    | 10%           | High desire, rising           |
+| Solid     | 3.8%          | Highest desire ranking        |
+
+React and Angular are losing developer enthusiasm year over year. Vue holds its position most consistently. Solid and Svelte top the "want to work with" rankings and score the highest developer satisfaction in surveys, loved for their simplicity and low boilerplate, but remain niche in actual adoption. Angular scores lower on satisfaction but higher on perceived reliability and structure.
+
+---
+
+## Maturity and Longevity
+
+Who is behind each framework, how long it has existed, and how frequently it releases are useful signals when evaluating long-term risk. A framework backed by a large company with a clear internal dependency on it is less likely to be abandoned than one maintained by a small independent team.
+
+| Framework    | Backed by                                                                                                                                                                          | First release          | Age (2026) | Backward compatibility                                                                        |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- | ---------- | --------------------------------------------------------------------------------------------- |
+| **React**    | Meta (Facebook)                                                                                                                                                                    | 2013                   | 13 years   | Strong. ~2 years since last breaking changes (v19, 2024).                                    |
+| **Vue**      | Community (independent). Evan You joined Cloudflare via VoidZero acquisition (June 2026), but Vue.js is not part of that deal.                                                     | 2014                   | 12 years   | Moderate. Last major break was Vue 3 (2020), but the migration caused significant ecosystem fragmentation that took years to resolve — many libraries stalled, and the Options vs Composition API split created lasting confusion. Risk of recurrence if Vue 4 follows a similar pattern. |
+| **Angular**  | Google                                                                                                                                                                             | 2016 (rewrite of AngularJS 2010) | 10 years (16 as AngularJS) | Strong. Two majors per year but each is additive. Formal 18-month LTS per version, automated migration tooling. |
+| **Svelte**   | Vercel (Rich Harris, employed by Vercel)                                                                                                                                           | 2016                   | 10 years   | Weak. Svelte 5 (2024) was a near-complete rewrite. No LTS policy.                            |
+| **Solid**    | Community (Ryan Carniato, independent)                                                                                                                                             | 2021                   | 5 years    | Good so far. No breaking changes since launch. v2 expected to break compatibility. No LTS policy. |
+
+React and Angular are the lowest-risk choices. Both are backed by large companies (Meta and Google) that run them in their own products at scale. Neither company can afford to abandon them.
+
+Svelte and Vue have cloud provider connections, though at different levels. Svelte is directly backed by Vercel: Rich Harris is an employee and SvelteKit is a Vercel product. Vue is more indirect: Evan You joined Cloudflare in June 2026 via the VoidZero acquisition (covering Vite and its tooling), but Vue.js itself has no corporate owner and remains community-governed.
+
+Solid is the only fully independent project. No corporate backer, small core team, 5 years old. Technically strong, but the lowest institutional staying power of the group.
+
+---
+
+## Functionality Comparison
+
+Frameworks differ significantly in how much they include out of the box vs. how much they leave to third-party libraries or your own choices. The table below covers the dimensions that matter most for SPAs, dashboards, and e-commerce products.
+
+### Key concepts
+
+*Coming from a backend or infrastructure background? This section covers the shared vocabulary all five frameworks use. [Skip to the capability table](#common-ground) if you already know components, props, and reactivity.*
+
+All five frameworks are **component-based**: a component is a self-contained unit bundling template, logic, and styles. You build UIs by composing components into trees, passing data down via props and communicating back up via events or callbacks.
+
+**Reactivity model** is how state changes propagate. React uses hooks (`useState`, `useEffect`). Vue, Solid, and Angular use signals — reading a value registers a dependency, writing it triggers only affected updates. Svelte 5 uses runes (`$state`, `$derived`, `$effect`), the same mental model as signals but implemented as compiler instructions.
+
+**Build tooling.** Vite is the shared standard across all five frameworks — near-instant dev server startup, fast hot module replacement.
+
+### Common ground
+
+All five frameworks share the concepts above, plus TypeScript support. They all encourage co-locating template, logic, and styles in a single unit.
+
+Where they diverge is in how much they include out of the box. The table below maps that gap.
+
+Legend: **Built-in** = ships with the framework, opinionated, no library needed. **Convention** = not built-in but a strong community standard exists. **Bring your own** = no official stance, pick any library.
+
+| Capability                 | React                                          | Vue 3                          | Angular                                                                | Svelte 5                                                                                  | Solid                         |
+| -------------------------- | ---------------------------------------------- | ------------------------------ | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------- |
+| **Reactivity model**       | Virtual DOM, hooks                             | Proxy-based (fine-grained)     | Signals-first, zoneless by default (v22+)                              | Runes (`$state`, `$derived`, `$effect`), compiled, no VDOM                                | Fine-grained signals, no VDOM |
+| **State management**       | Bring your own (Zustand, Jotai, Redux)         | Pinia (convention)             | Built-in services + signals                                            | Built-in runes (`$state`, `$derived`). The old store API still works but is no longer idiomatic. | Built-in signals + stores     |
+| **Routing**                | Bring your own (React Router, TanStack Router) | Vue Router (convention)        | Built-in (Angular Router)                                              | Bring your own (in plain Svelte)                                                          | Bring your own (solid-router) |
+| **Forms**                  | Bring your own (React Hook Form, Formik)       | Bring your own (VeeValidate)   | Built-in Signal Forms (stable v22, replaces Reactive / Template forms) | Bring your own                                                                            | Bring your own                |
+| **HTTP / data fetching**   | Bring your own (TanStack Query, SWR)           | Bring your own                 | Built-in HttpClient (Fetch by default v22)                             | Bring your own                                                                            | Bring your own (solid-query)  |
+| **Dependency injection**   | None                                           | provide/inject (basic)         | Built-in, full DI container                                            | None                                                                                      | None                          |
+| **TypeScript**             | Optional                                       | Optional                       | Mandatory                                                              | Optional                                                                                  | Optional                      |
+| **CSS scoping**            | Bring your own (CSS modules, Tailwind)         | Built-in scoped styles         | Built-in component styles                                              | Built-in scoped styles                                                                    | Bring your own                |
+| **Testing utilities**      | React Testing Library (convention)             | Vue Test Utils (convention)    | Vitest (default v22, replaces Karma) + TestBed                         | Svelte Testing Library (convention)                                                       | Bring your own                |
+| **CLI / project scaffold** | Vite (convention)                              | Vite + create-vue (convention) | Angular CLI (built-in, opinionated)                                    | Vite + sv (convention)                                                                    | Vite (convention)             |
+
+### What this means in practice
+
+**Angular** eliminates analysis paralysis. Every architectural question has a first-party answer: routing, forms, HTTP, DI, testing. The team never debates what to use. You start with only what you need and keep adding; the framework always pushes you in one direction. That same opinionation can make early prototyping feel slower than more flexible alternatives.
+
+**Vue 3** is the most flexible of the established frameworks. Lean by default, with official packages for state (Pinia) and routing (Vue Router) that slot in without the weight of Angular. This is an underrated advantage for a small team that wants to ship: the architectural decisions are already made, and they're good ones.
+
+**React** is deliberately minimal, which means every capability beyond rendering involves a choice. That freedom is a real tax: you're choosing between Zustand vs. Jotai vs. Redux for state, React Router vs. TanStack Router for routing, SWR vs. TanStack Query for data fetching. Those debates take time, and when a new React version ships, you often have to wait for the libraries you depend on to catch up before you can upgrade.
+
+**Svelte 5** is the weakest option on raw capabilities. The built-in primitives cover reactivity and CSS scoping well, but routing, forms, and data fetching all require external libraries and the ecosystem is not yet deep enough to match React or Vue for SaaS tooling.
+
+**Solid** compensates for its thin ecosystem with best-in-class runtime performance. That trade-off makes sense for use cases where performance is the primary constraint. For a SaaS product, it rarely is.
+
+---
+
+## Performance
+
+All five frameworks perform adequately for real-world SaaS UIs. The differences only show up at row counts (100k+) no dashboard should render without virtualisation — and libraries like TanStack Virtual eliminate that gap anyway.
+
+---
+
+## Developer Experience
+
+*All five frameworks use Vite, scaffold in under a minute, and have fast HMR. The two dimensions that actually differ:*
+
+**TypeScript integration.** Angular and Vue have tight template type-checking built in (Angular enforces it, Vue requires Volar — the standard VS Code extension). React, Svelte, and Solid have solid TypeScript support for logic and props, but template or JSX type-checking is less complete.
+
+**Devtools.** React and Vue have the most mature browser devtools: component tree inspection, props and state viewing, performance profiling. Angular DevTools covers component inspection and change detection profiling. Svelte and Solid have basic component inspection but lack the profiling depth of the other three.
+
+---
+
+## Ecosystem
+
+The maturity of third-party integrations varies significantly across frameworks. React ships first for almost every SaaS tooling category; other frameworks get support later, in limited form, or not at all.
+
+| Category                             | React                               | Vue 3                                     | Angular                                                | Svelte                                       | Solid                            |
+| ------------------------------------ | ----------------------------------- | ----------------------------------------- | ------------------------------------------------------ | -------------------------------------------- | -------------------------------- |
+| **Auth** (Clerk, Auth.js, Supabase)  | Official SDKs, first-class support  | Official SDKs available                   | Official SDKs available                                | Community adapters, limited official support | Community adapters only          |
+| **Billing** (Stripe)                 | Official React SDK, Stripe Elements | Works via JS SDK, no official Vue wrapper | Works via JS SDK, no official Angular wrapper          | Community wrappers (svelte-stripe)           | JS SDK only                      |
+| **UI components** (shadcn/ui, Radix) | Native, purpose-built for React     | shadcn for Vue available, growing         | No shadcn equivalent; Angular Material is the standard | Limited; Skeleton UI, Flowbite Svelte        | Limited; no established standard |
+| **Error tracking** (Sentry)          | Official `@sentry/react` SDK        | Official `@sentry/vue` SDK                | Official `@sentry/angular` SDK                         | Official `@sentry/svelte` SDK                | Community support only           |
+
+The pattern is consistent: React gets official, maintained, framework-aware integrations. Vue and Angular follow with their own official SDKs for the major tools. Svelte has official support for observability but relies on the community for auth and billing. Solid is almost entirely on the JS SDK layer, with no dedicated integrations for any category.
+
+---
+
+## Design Tools
+
+Design tooling covers two related questions: what component libraries are available for building consistent UIs, and how well the framework integrates with the design workflow (Figma handoff, design tokens, generated code).
+
+| Category                  | React                                                                             | Vue 3                                                          | Angular                                                               | Svelte                                                    | Solid                                 |
+| ------------------------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------- |
+| **Component libraries**   | shadcn/ui, Radix UI, MUI, Ant Design, Chakra UI                                   | Vuetify, PrimeVue, shadcn-vue (growing)                        | Angular Material (official), PrimeNG, Clarity                         | Skeleton UI, Flowbite Svelte, limited options             | No established standard               |
+| **Design token support**  | Strong. Most libraries support CSS custom properties and theming out of the box   | Good. Vuetify and PrimeVue have full token systems             | Good. Angular Material uses a token-based theming system (v17+)       | Basic. Scoped CSS variables work, but library support is thin | Minimal                           |
+| **Figma-to-code**         | Best coverage. Figma plugins (Builder.io, Anima, Locofy) all target React first   | Partial. Builder.io supports Vue; Anima and Locofy have limited Vue output | Partial. Builder.io supports Angular; community plugins exist | Minimal. Most tools do not generate Svelte output         | Not supported by major tools          |
+| **Storybook**             | First-class support, largest addon ecosystem                                      | Official support, good ecosystem                               | Official support                                                      | Official support                                          | Community support, limited addons     |
+
+React has the deepest integration at every layer of the design workflow. Figma-to-code tools treat React as the default target, and the component library ecosystem (shadcn/ui, Radix, MUI) is purpose-built for product UIs with strong theming and token support.
+
+Vue and Angular are well served by their own mature component libraries (Vuetify, Angular Material) and have workable Figma handoff paths, but they are second-tier targets for the major code-generation tools. Angular's Material Design system is the most opinionated of the group: it enforces a consistent visual language, which can be an advantage for teams without a dedicated designer but a constraint for teams with strong brand requirements.
+
+Svelte and Solid have thin tooling at this layer. Storybook works for both, but Figma-to-code tools do not generate output for either framework, and the component library options are limited.
+
+---
+
+## Hiring
+
+React has dominated frontend hiring for over a decade. Roughly 60 to 65% of frontend developers list it as their primary framework. The talent pool is unmatched and the gap to alternatives is large.
+
+| Framework | Hiring ease                                         |
+| --------- | --------------------------------------------------- |
+| React     | Very easy, deep talent pool                         |
+| Vue 3     | Moderate, decent pool especially in Europe          |
+| Angular   | Moderate, skews enterprise and Java-background devs |
+| Svelte    | Hard, enthusiast-driven pool, small                 |
+| Solid.js  | Very hard, still niche                              |
+
+Declining enthusiasm in surveys doesn't translate directly to a shrinking hiring pool — sentiment takes years to move the talent market. React's dominance in current usage (30%) and its decade-long position as the default hiring target means the gap to alternatives is large and will remain so for the foreseeable future.
+
+---
+
+## Backend and Frontend Synergy
+
+When backend and frontend developers share similar mental models — DI, typed interfaces, service layers, structured architecture — collaboration is easier: code reviews are faster, the architecture is more consistent, and backend developers can contribute to the frontend without a full context switch.
+
+The table below maps each backend stack to the frontend framework that creates the most natural overlap.
+
+| Backend                       | Recommended frontend | Reasoning                                                                                                                                                                                                                                                                                                                                                               |
+| ----------------------------- | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Java / Spring**             | Angular              | Both languages have been independently moving in the same direction: less boilerplate, more explicit data flow, same underlying structure. A Java developer stepping into Angular today will recognise the shift. It mirrors what happened in Java over the last decade. DI, services, typed interfaces, and opinionated architecture remain the shared foundation.    |
+| **Kotlin / Spring**           | Angular or React     | Kotlin pushed further into expressive, functional style than Java, making both Angular and React viable. Angular's structure and DI map to Spring familiarity; React's composition model and concise syntax align with how idiomatic Kotlin code reads. The choice depends on whether the team prioritises familiarity with the backend patterns or DX on the frontend. |
+| **C# / .NET**                 | Angular or React     | Microsoft's ecosystem has a long history with Angular. Structured, enterprise .NET teams tend toward Angular; product-focused .NET teams lean React for the broader ecosystem.                                                                                                                                                                                          |
+| **Python / Django / FastAPI** | React or Vue         | Python teams tend to favour simplicity and quick iteration. React is the safest default for ecosystem depth. Vue's gentle learning curve and HTML-close templates feel familiar to developers used to Django templates or Jinja.                                                                                                                                        |
+| **Go**                        | React or Vue         | Go teams typically favour lean, composable tools and dislike unnecessary abstraction. React and Vue match that philosophy; Angular's verbosity tends to feel at odds with the Go ethos.                                                                                                                                                                                 |
+
+---
+
+## Agentic Development
+
+AI coding assistants (Claude Code, Cursor, Copilot) are now a standard part of the frontend workflow. The framework you choose affects how well they work. The gap is not small.
+
+The core reason is training data. LLMs learn from code on GitHub and Stack Overflow, and React has a significantly larger corpus than any other frontend framework. More training data means more idiomatic suggestions, better refactoring, fewer hallucinated APIs, and more reliable multi-file edits. The gap is consistent across tools and models, even as overall quality improves.
+
+| Framework | Agentic development quality                                                                                                                                        |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| React     | Best. Largest training corpus, most idiomatic output, most reliable for multi-file agentic tasks.                                                                  |
+| Angular   | Good. Well-represented in training data, TypeScript helps models reason about types and structure. Verbose patterns can produce longer-than-needed generated code. |
+| Vue 3     | Moderate. HTML-close template syntax helps some models, but ecosystem and patterns are less consistently represented.                                              |
+| Svelte    | Weak. Runes syntax is recent and underrepresented. Generated code is less idiomatic and more likely to require correction.                                         |
+| Solid     | Weak. Niche framework with limited training data. Models frequently fall back to React patterns that don't apply.                                                  |
+
+If agentic development is a significant part of your workflow, React's advantage here compounds the ecosystem and hiring arguments. Angular is the only other framework where AI tooling is reasonably reliable. Vue, Svelte, and Solid require more manual correction and prompt engineering to get consistent output.
+
+---
+
+## How to Decide
+
+Start with the constraint that rules out the most options.
+
+**Is your backend Java or C#/.NET, and do you expect backend developers to contribute to the frontend?** Pick Angular. The DI, service layers, and typed architecture map directly to what they already know. The onboarding cost is worth it for the long-term collaboration payoff.
+
+**Are you hiring a dedicated frontend team or relying heavily on AI coding assistants?** Pick React. The talent pool is unmatched — 60–65% of frontend developers list it as their primary framework — and LLM tooling produces its most reliable output against React's training corpus. Every major SaaS library (auth, billing, UI components, data grids) ships a React integration first.
+
+**Is your team small, your backend Python or Go, and do you want to move fast without framework overhead?** Pick Vue. The architectural decisions React leaves open — which state library, which router, which data fetching layer — Vue makes for you, and makes them well. You start building the product, not the stack. Developer satisfaction has been the most stable of any framework over time, and hiring is viable, particularly in Europe.
+
+**Svelte and Solid** are worth watching but not yet worth building a product on. Svelte's compiler model and Solid's performance lead are real advantages — they're just not advantages that matter more than ecosystem depth and hiring confidence for most SaaS teams in 2026.
+
+The default, absent any of the above signals, is React. Not because it's the best framework — Vue is arguably better engineered — but because it eliminates the most risk across hiring, ecosystem integrations, and agentic tooling simultaneously.
