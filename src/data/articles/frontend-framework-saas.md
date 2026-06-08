@@ -136,6 +136,23 @@ The maturity of third-party integrations varies significantly across frameworks.
 
 The pattern is consistent: React gets official, maintained, framework-aware integrations. Vue and Angular follow with their own official SDKs for the major tools. Svelte has official support for observability but relies on the community for auth and billing. Solid is almost entirely on the JS SDK layer, with no dedicated integrations for any category.
 
+### Design tools
+
+Design tooling covers two related questions: what component libraries are available for building consistent UIs, and how well the framework integrates with the design workflow (Figma handoff, design tokens, generated code).
+
+| Category              | React                                                        | Vue 3                                              | Angular                                                       | Svelte                                          | Solid                                  |
+| --------------------- | ------------------------------------------------------------ | -------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------- | -------------------------------------- |
+| **Component libraries** | shadcn/ui, Radix UI, MUI, Ant Design, Chakra UI            | Vuetify, PrimeVue, shadcn-vue (growing)            | Angular Material (official), PrimeNG, Clarity                 | Skeleton UI, Flowbite Svelte, limited options   | No established standard                |
+| **Design token support** | Strong. Most libraries support CSS custom properties and theming out of the box | Good. Vuetify and PrimeVue have full token systems | Good. Angular Material uses a token-based theming system (v17+) | Basic. Scoped CSS variables work, but library support is thin | Minimal                    |
+| **Figma-to-code**     | Best coverage. Figma plugins (Builder.io, Anima, Locofy) all target React first | Partial. Builder.io supports Vue; Anima and Locofy have limited Vue output | Partial. Builder.io supports Angular; community plugins exist | Minimal. Most tools do not generate Svelte output | Not supported by major tools          |
+| **Storybook**         | First-class support, largest addon ecosystem                 | Official support, good ecosystem                   | Official support                                              | Official support                                | Community support, limited addons      |
+
+React has the deepest integration at every layer of the design workflow. Figma-to-code tools treat React as the default target, and the component library ecosystem (shadcn/ui, Radix, MUI) is purpose-built for product UIs with strong theming and token support.
+
+Vue and Angular are well served by their own mature component libraries (Vuetify, Angular Material) and have workable Figma handoff paths, but they are second-tier targets for the major code-generation tools. Angular's Material Design system is the most opinionated of the group: it enforces a consistent visual language, which can be an advantage for teams without a dedicated designer but a constraint for teams with strong brand requirements.
+
+Svelte and Solid have thin tooling at this layer. Storybook works for both, but Figma-to-code tools do not generate output for either framework, and the component library options are limited.
+
 ### Backend and frontend synergy
 
 When backend and frontend developers share similar mental models, DI, typed interfaces, service layers, structured architecture, collaboration is easier: code reviews are faster, the architecture is more consistent, and backend developers can contribute to the frontend without a full context switch.
