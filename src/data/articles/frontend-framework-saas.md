@@ -34,7 +34,7 @@ Before picking a framework, it's worth understanding the split in the landscape.
 
 A **frontend framework** (React, Vue, Svelte, Angular, Solid) handles the UI layer. It runs in the browser and talks to a backend API you manage separately. This is the right choice when your backend is already decided.
 
-A **meta framework** (Next.js, Nuxt, SvelteKit, React Router v7, TanStack Start) wraps a frontend framework and adds a server layer: server-side rendering, API routes, middleware, and integrated deployment. These are designed for cases where you want frontend and backend in one repo, or need SEO on public pages.
+A **meta framework** (Next.js, Nuxt, SvelteKit) wraps a frontend framework and adds a server layer: server-side rendering, API routes, middleware, and integrated deployment. These are designed for cases where you want frontend and backend in one repo, or need SEO on public pages.
 
 **For a SaaS with an existing backend, you want a frontend framework.** Meta frameworks introduce a server layer you don't need and couple your frontend to a specific deployment model. Most LLMs default to recommending Next.js without making this distinction, which is worth being aware of.
 
