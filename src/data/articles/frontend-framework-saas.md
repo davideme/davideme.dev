@@ -70,8 +70,6 @@ All five frameworks are **component-based**: a component is a self-contained uni
 
 **Build tooling.** Vite is the shared standard across all five frameworks — near-instant dev server startup, fast hot module replacement.
 
-<a name="common-ground"></a>
-
 ### Common ground
 
 All five frameworks share the concepts above, plus TypeScript support. They all encourage co-locating template, logic, and styles in a single unit.
