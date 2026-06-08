@@ -56,6 +56,26 @@ React and Angular are losing developer enthusiasm year over year. Vue holds its 
 
 ---
 
+## Maturity and Longevity
+
+Who is behind each framework, how long it has existed, and how frequently it releases are useful signals when evaluating long-term risk. A framework backed by a large company with a clear internal dependency on it is less likely to be abandoned than one maintained by a small independent team.
+
+| Framework    | Backed by                                                                                                                                                                          | First release          | Age (2026) | Backward compatibility                                                                        |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- | ---------- | --------------------------------------------------------------------------------------------- |
+| **React**    | Meta (Facebook)                                                                                                                                                                    | 2013                   | 13 years   | Strong. ~2 years since last breaking changes (v19, 2024).                                    |
+| **Vue**      | Community (independent). Evan You joined Cloudflare via VoidZero acquisition (June 2026), but Vue.js is not part of that deal.                                                     | 2014                   | 12 years   | Moderate. Last breaking change: Vue 3 in 2020 (6 years ago).                                 |
+| **Angular**  | Google                                                                                                                                                                             | 2016 (rewrite of AngularJS 2010) | 10 years (16 as AngularJS) | Strong. Two majors per year but each is additive. Formal 18-month LTS per version, automated migration tooling. |
+| **Svelte**   | Vercel (Rich Harris, employed by Vercel)                                                                                                                                           | 2016                   | 10 years   | Weak. Svelte 5 (2024) was a near-complete rewrite. No LTS policy.                            |
+| **Solid**    | Community (Ryan Carniato, independent)                                                                                                                                             | 2021                   | 5 years    | Good so far. No breaking changes since launch. v2 expected to break compatibility. No LTS policy. |
+
+React and Angular are the lowest-risk choices. Both are backed by large companies (Meta and Google) that run them in their own products at scale. Neither company can afford to abandon them.
+
+Svelte and Vue have cloud provider connections, though at different levels. Svelte is directly backed by Vercel: Rich Harris is an employee and SvelteKit is a Vercel product. Vue is more indirect: Evan You joined Cloudflare in June 2026 via the VoidZero acquisition (covering Vite and its tooling), but Vue.js itself has no corporate owner and remains community-governed.
+
+Solid is the only fully independent project. No corporate backer, small core team, 5 years old. Technically strong, but the lowest institutional staying power of the group.
+
+---
+
 ## Functionality Comparison
 
 Frameworks differ significantly in how much they include out of the box vs. how much they leave to third-party libraries or your own choices. The table below covers the dimensions that matter most for SPAs, dashboards, and e-commerce products.
