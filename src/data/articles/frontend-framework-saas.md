@@ -224,21 +224,7 @@ If agentic development is a significant part of your workflow, React's advantage
 
 ## Performance
 
-Extreme benchmarks, such as rendering 200,000 rows and measuring create, update, swap, and clear times, show real differences between frameworks. Virtual DOM frameworks (React, Vue) carry overhead from diffing; compiled or signal-based frameworks (Svelte, Solid) operate closer to the DOM directly. Angular's SWAP time in particular stands out as an outlier at this scale.
-
-These numbers matter in theory but rarely in practice for SaaS. A dashboard rendering 200,000 rows simultaneously is a design problem before it is a framework problem. In real-world SaaS UIs with up to 5,000 to 10,000 rows, the differences between frameworks are not perceptible to users, and all five perform adequately.
-
-The practical rule is simpler: do not render more than 500 items without pagination or a virtualisation solution. Libraries like TanStack Virtual work across React, Vue, and Angular and effectively eliminate the performance gap for list-heavy UIs by rendering only what is visible in the viewport.
-
-| Framework | Performance profile |
-| --------- | ------------------- |
-| React     | Virtual DOM. Excellent for typical SaaS UIs. SWAP at extreme scale is the main weakness. |
-| Vue 3     | Proxy-based fine-grained reactivity. Slightly slower creates than React at scale, but strong SWAP performance. |
-| Angular   | Signals-first, zoneless. Good UPDATE performance; SWAP at extreme row counts is the worst of the group. |
-| Svelte 5  | Compiled, no VDOM. Fast across most operations; SWAP is among the best. |
-| Solid     | Fine-grained signals, no VDOM. Fastest SWAP by a wide margin. Best overall at extreme scale. |
-
-Solid's performance lead is genuine but only relevant at row counts no SaaS UI should be rendering without virtualisation anyway.
+All five frameworks perform adequately for real-world SaaS UIs. The differences only show up at row counts (100k+) no dashboard should render without virtualisation — and libraries like TanStack Virtual eliminate that gap anyway.
 
 ---
 
@@ -268,49 +254,16 @@ React and Vue have the most mature browser devtools: component tree inspection, 
 
 ---
 
-## Ease of switching
+## How to decide
 
-Switching frontend frameworks always means rewriting components. There is no migration path that avoids this. The template syntax, reactivity model, and component API are different in every framework. What varies is how much conceptual baggage transfers and how familiar the destination feels.
+Start with the constraint that rules out the most options.
 
-### Transferable concepts
+**Is your backend Java or C#/.NET, and do you expect backend developers to contribute to the frontend?** Pick Angular. The DI, service layers, and typed architecture map directly to what they already know. The onboarding cost is worth it for the long-term collaboration payoff.
 
-Some things carry across every switch: component architecture, props and one-way data flow, TypeScript, CSS patterns, and the general SPA routing mental model. These are never lost. What doesn't transfer is the framework-specific idioms: how state is declared, how side effects are handled, how the DI system works, and how the template language reads.
+**Are you hiring a dedicated frontend team or relying heavily on AI coding assistants?** Pick React. The talent pool is unmatched — 60–65% of frontend developers list it as their primary framework — and LLM tooling produces its most reliable output against React's training corpus. Every major SaaS library (auth, billing, UI components, data grids) ships a React integration first.
 
-### Easiest switches
+**Is your team small, your backend Python or Go, and do you want to move fast without framework overhead?** Pick Vue. It gives you enough structure (Pinia for state, Vue Router for routing) without Angular's ceremony, and it's the most stable in developer satisfaction over time. Hiring is harder than React but viable, particularly in Europe.
 
-**React to Solid** is the shortest conceptual distance. Solid was deliberately designed to look like React: JSX syntax, similar component structure, props work the same way. The main shift is from hooks to signals: `useState` becomes `createSignal`, `useEffect` becomes `createEffect`. A React developer can be productive in Solid in days.
+**Svelte and Solid** are worth watching but not yet worth building a product on. Svelte's compiler model and Solid's performance lead are real advantages — they're just not advantages that matter more than ecosystem depth and hiring confidence for most SaaS teams in 2026.
 
-**React to Vue** is a medium jump. The component model is familiar, but the template syntax, `ref`/`reactive`, and the Options vs Composition API distinction require real adjustment. A week of focused learning gets you functional; idiomatic Vue takes longer.
-
-**Vue to Svelte** is relatively smooth. Both have HTML-close template syntax, scoped styles, and a similar single-file component feel. The reactivity model is different (runes vs. Options/Composition) but the overall structure is familiar enough.
-
-### Hardest switches
-
-**Any framework to Angular** is the steepest climb, regardless of origin. Angular requires learning DI, decorators, the CLI conventions, and a large surface area of first-party APIs before you can be productive. Coming from React or Vue, much of what you know about minimal, composable architecture has to be unlearned or reframed.
-
-**Angular to anything** is similarly disorienting in the other direction. Developers used to Angular's structure often find the lack of opinions in React frustrating. There is no built-in answer for forms, routing, or state, and the freedom reads as ambiguity.
-
-### Summary
-
-| Switch | Difficulty | Main obstacle |
-| ------ | ---------- | ------------- |
-| React to Solid | Low | Hooks to signals mental model |
-| React to Vue | Medium | Template syntax, reactivity API |
-| Vue to Svelte | Medium | Runes vs Composition API |
-| React to Angular | High | DI, decorators, opinionated architecture |
-| Angular to React | High | Loss of structure, bring-your-own decisions |
-| Any to Solid/Svelte | Medium-High | Thin ecosystem, less community support during transition |
-
-The practical takeaway: switching is a codebase rewrite, not a refactor. The question is never "can we switch" but "is the switch worth the cost at our current scale." A 5-person team on a young codebase can absorb a switch in a quarter. A 20-person team on a mature product cannot.
-
----
-
-## Full Comparison
-
-| Framework | Verdict                                                                                          |
-| --------- | ------------------------------------------------------------------------------------------------ |
-| React     | Recommended for most teams. Ecosystem and hiring pool are the strongest for SaaS.                |
-| Vue 3     | Best middle ground. Excellent framework, strong in Europe and Asia.                              |
-| Angular   | Best fit for Java-background teams. Too verbose for a fast-moving early-stage product otherwise. |
-| Svelte 5  | Better DX and less boilerplate, but smaller ecosystem and component library selection.           |
-| Solid.js  | Great performance, very React-like API, but still too niche for hiring confidence.               |
+The default, absent any of the above signals, is React. Not because it's the best framework — Vue is arguably better engineered — but because it eliminates the most risk across hiring, ecosystem integrations, and agentic tooling simultaneously.
