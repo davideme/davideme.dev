@@ -62,67 +62,15 @@ Frameworks differ significantly in how much they include out of the box vs. how 
 
 ### Key concepts
 
-**Component-based architecture** is the universal foundation. A component is a self-contained unit bundling its own template, logic, and styles. You build UIs by composing components into trees, passing data down via props and communicating back up via events or callbacks.
+*Coming from a backend or infrastructure background? This section covers the shared vocabulary all five frameworks use. [Skip to the capability table](#common-ground) if you already know components, props, and reactivity.*
 
-A dashboard page might be composed like this (React/JSX syntax, but the structure is identical in Vue and Svelte):
+All five frameworks are **component-based**: a component is a self-contained unit bundling template, logic, and styles. You build UIs by composing components into trees, passing data down via props and communicating back up via events or callbacks.
 
-```jsx
-<DashboardPage>
-  <Sidebar links={navLinks} />
-  <MainContent>
-    <MetricsBar stats={stats} />
-    <DataTable rows={rows} onRowClick={handleRowClick} />
-  </MainContent>
-</DashboardPage>
-```
+**Reactivity model** is how state changes propagate. React uses hooks (`useState`, `useEffect`). Vue, Solid, and Angular use signals — reading a value registers a dependency, writing it triggers only affected updates. Svelte 5 uses runes (`$state`, `$derived`, `$effect`), the same mental model as signals but implemented as compiler instructions.
 
-Each component owns its own logic and can be developed, tested, and reused independently. `DataTable` knows nothing about `Sidebar`; they both receive only what they need from their parent.
+**Build tooling.** Vite is the shared standard across all five frameworks — near-instant dev server startup, fast hot module replacement.
 
-**Reactivity model** is how you express state changes in your code and how the framework responds to them. There are three main approaches across these frameworks. React uses hooks (`useState`, `useEffect`), functions you call inside components to declare state and side effects. Vue, Solid, and Angular use signals, a primitive where reading a value automatically registers a dependency and writing it triggers only the affected updates. Svelte 5 uses runes (`$state`, `$derived`, `$effect`), which share the same mental model as signals but are compiler instructions rather than runtime objects.
-
-Signals (Vue):
-
-```js
-const count = ref(0);
-watchEffect(() => { document.title = count.value; });
-count.value++; // mutation via .value: the signal is a wrapper object
-```
-
-**Props and one-way data flow** governs how data moves between components. A parent passes data down to a child via props. The child cannot mutate those props directly; to communicate back up, the parent passes a function as a prop and the child calls it. This makes data flow predictable and easier to debug.
-
-```jsx
-// Parent (React)
-function Parent() {
-  const [name, setName] = useState("Alice");
-  return <UserCard name={name} onRename={setName} />;
-}
-
-// Child: receives data and a callback, owns neither
-function UserCard({ name, onRename }) {
-  return <button onClick={() => onRename("Bob")}>{name}</button>;
-}
-```
-
-**Single-file components** is the pattern of co-locating template, logic, and styles in one file. Vue's `.vue`, Svelte's `.svelte`, and Angular's decorated class with template all follow this pattern. React is the partial outlier: JSX mixes template and logic in one file but styles are typically separate.
-
-```vue
-<!-- UserCard.vue -->
-<template>
-  <button @click="rename">{{ name }}</button>
-</template>
-
-<script setup>
-defineProps(['name']);
-const emit = defineEmits(['rename']);
-function rename() { emit('rename', 'Bob'); }
-</script>
-
-<style scoped>
-button { font-weight: bold; }
-</style>
-```
-
-**Build tooling.** Vite is now the shared standard across all five frameworks for local dev and bundling. It provides near-instant dev server startup via native ES modules and fast hot module replacement.
+<a name="common-ground"></a>
 
 ### Common ground
 
@@ -149,9 +97,9 @@ Legend: **Built-in** = ships with the framework, opinionated, no library needed.
 
 **Angular** eliminates analysis paralysis. Every architectural question has a first-party answer: routing, forms, HTTP, DI, testing. The team never debates what to use. You start with only what you need and keep adding; the framework always pushes you in one direction. That same opinionation can make early prototyping feel slower than more flexible alternatives.
 
-**Vue 3** is the most flexible of the established frameworks. Lean by default, with official packages for state and routing that slot in without the weight of Angular. It adapts well to different project shapes, not just SaaS.
+**Vue 3** is the most flexible of the established frameworks. Lean by default, with official packages for state (Pinia) and routing (Vue Router) that slot in without the weight of Angular. This is an underrated advantage for a small team that wants to ship: the architectural decisions are already made, and they're good ones.
 
-**React** is deliberately minimal, which means every capability beyond rendering involves a choice. Those choices generate debate: which state library, which router, which data fetching layer. When a new React version ships, you often have to wait for the libraries you depend on to catch up before you can upgrade.
+**React** is deliberately minimal, which means every capability beyond rendering involves a choice. That freedom is a real tax: you're choosing between Zustand vs. Jotai vs. Redux for state, React Router vs. TanStack Router for routing, SWR vs. TanStack Query for data fetching. Those debates take time, and when a new React version ships, you often have to wait for the libraries you depend on to catch up before you can upgrade.
 
 **Svelte 5** is the weakest option on raw capabilities. The built-in primitives cover reactivity and CSS scoping well, but routing, forms, and data fetching all require external libraries and the ecosystem is not yet deep enough to match React or Vue for SaaS tooling.
 
@@ -230,27 +178,11 @@ All five frameworks perform adequately for real-world SaaS UIs. The differences 
 
 ## Developer Experience
 
-DX covers the daily feedback loop: how fast you go from change to result, how clear errors are, how good the tooling is, and how tight the TypeScript integration feels.
+*All five frameworks use Vite, scaffold in under a minute, and have fast HMR. The two dimensions that actually differ:*
 
-### Time to first running app
+**TypeScript integration.** Angular and Vue have tight template type-checking built in (Angular enforces it, Vue requires Volar — the standard VS Code extension). React, Svelte, and Solid have solid TypeScript support for logic and props, but template or JSX type-checking is less complete.
 
-All five frameworks use Vite and can scaffold a running app in under a minute. Angular requires learning more concepts before feeling productive, but the conclusion is the same: the setup cost is not a differentiating factor.
-
-### Hot module replacement
-
-HMR is fast across all five frameworks with Vite. There is no meaningful difference in practice.
-
-### TypeScript integration
-
-Two groups. Angular and Vue have tight template type-checking built in (Angular enforces it, Vue requires Volar which is the standard VS Code extension). React, Svelte, and Solid have solid TypeScript support for logic and component props, but template or JSX type-checking is less complete.
-
-### Error messages
-
-React, Vue, and Angular all produce clear, actionable errors. The quality is roughly equivalent. Svelte has an advantage: its compiler catches mistakes at build time rather than runtime. Solid is the weakest here, with errors that are less descriptive and harder to trace.
-
-### Devtools
-
-React and Vue have the most mature browser devtools: component tree inspection, props and state viewing, and performance profiling. Angular DevTools covers component inspection and change detection profiling. Svelte and Solid have basic component inspection but lack the profiling depth of the other three.
+**Devtools.** React and Vue have the most mature browser devtools: component tree inspection, props and state viewing, performance profiling. Angular DevTools covers component inspection and change detection profiling. Svelte and Solid have basic component inspection but lack the profiling depth of the other three.
 
 ---
 
@@ -262,7 +194,7 @@ Start with the constraint that rules out the most options.
 
 **Are you hiring a dedicated frontend team or relying heavily on AI coding assistants?** Pick React. The talent pool is unmatched — 60–65% of frontend developers list it as their primary framework — and LLM tooling produces its most reliable output against React's training corpus. Every major SaaS library (auth, billing, UI components, data grids) ships a React integration first.
 
-**Is your team small, your backend Python or Go, and do you want to move fast without framework overhead?** Pick Vue. It gives you enough structure (Pinia for state, Vue Router for routing) without Angular's ceremony, and it's the most stable in developer satisfaction over time. Hiring is harder than React but viable, particularly in Europe.
+**Is your team small, your backend Python or Go, and do you want to move fast without framework overhead?** Pick Vue. The architectural decisions React leaves open — which state library, which router, which data fetching layer — Vue makes for you, and makes them well. You start building the product, not the stack. Developer satisfaction has been the most stable of any framework over time, and hiring is viable, particularly in Europe.
 
 **Svelte and Solid** are worth watching but not yet worth building a product on. Svelte's compiler model and Solid's performance lead are real advantages — they're just not advantages that matter more than ecosystem depth and hiring confidence for most SaaS teams in 2026.
 
