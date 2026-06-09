@@ -25,3 +25,24 @@ const o = advisorData.outOfScope;
     </button>
   </div>
 </div>
+
+<style>
+  .result--oos { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; padding: 12px 0; }
+  .oos__icon {
+    width: 56px; height: 56px; border-radius: 16px; background: var(--bg-2);
+    border: 1px solid var(--border-1); display: flex; align-items: center;
+    justify-content: center; font-size: 24px; color: var(--fg-3);
+  }
+  .oos__title { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; color: var(--fg-1); margin: 0; }
+  .oos__body  { font-size: var(--fs-sm); color: var(--fg-2); line-height: 1.6; max-width: 46ch; margin: 0; }
+  .oos__paths { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 420px; margin-top: 4px; }
+  .oos__path {
+    display: flex; gap: 10px; align-items: baseline; background: var(--bg-2);
+    border: 1px solid var(--border-1); border-radius: var(--radius-sm);
+    padding: 12px 14px; text-align: left;
+  }
+  .oos__pk { font-size: var(--fs-2xs); font-weight: 700; color: var(--accent); flex: none; }
+  .oos__pt { font-size: var(--fs-2xs); color: var(--fg-2); line-height: 1.45; }
+  .result__actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .result__actions button { font-family: inherit; }
+</style>

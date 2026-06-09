@@ -23,3 +23,24 @@ const fw = advisorData.frameworks[fwKey];
   <Bullets fwKey={fwKey} limit={3} />
   <AdoptionBar fwKey={fwKey} compact />
 </div>
+
+<style>
+  .cmp__col { display: flex; flex-direction: column; gap: 12px; padding: 20px; border: 1px solid var(--border-1); }
+  /* Column modifiers are applied by JS; the element already carries this component's cid */
+  .cmp__col--pick { border-radius: var(--radius) 0 0 var(--radius); border-right: none; background: var(--bg-2); }
+  .cmp__col--rec  {
+    border-radius: 0 var(--radius) var(--radius) 0; border-left: none;
+    background: var(--accent-tint);
+    border-color: color-mix(in srgb, var(--accent) 30%, var(--border-1));
+  }
+  .cmp__col--solo { border-radius: var(--radius); }
+  .cmp__role { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-3); }
+  .cmp__role--rec { color: var(--accent); }
+  .cmp__meta { font-size: 11.5px; color: var(--fg-3); line-height: 1.4; }
+  /* Bullets are rendered by a child component; :global() crosses the cid boundary for li */
+  .cmp__col :global(.rbullets li) { font-size: var(--fs-2xs); }
+  @media (max-width: 560px) {
+    .cmp__col--pick { border-radius: var(--radius) var(--radius) 0 0; border-right: 1px solid var(--border-1); border-bottom: none; }
+    .cmp__col--rec  { border-radius: 0 0 var(--radius) var(--radius); border-left: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border-1)); }
+  }
+</style>

@@ -45,3 +45,27 @@ const fw = advisorData.frameworks[fwKey];
     </button>
   </div>
 </div>
+
+<style>
+  .result { display: flex; flex-direction: column; gap: 20px; }
+  .result__top { display: flex; flex-direction: column; gap: 10px; }
+  .result__reason {
+    font-size: var(--fs-body-lg); color: var(--fg-1); line-height: 1.55;
+    font-weight: 500; letter-spacing: -0.01em; margin: 0;
+  }
+
+  /* ── Meta row ─────────────────────────────────────────────────────── */
+  .rmeta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  @media (max-width: 560px) { .rmeta { grid-template-columns: 1fr; } }
+  .rmeta__cell {
+    background: var(--bg-2); border: 1px solid var(--border-1);
+    border-radius: var(--radius-sm); padding: 13px 14px;
+    display: flex; flex-direction: column; gap: 5px;
+  }
+  .rmeta__k { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); }
+  .rmeta__v { font-size: var(--fs-2xs); color: var(--fg-1); line-height: 1.4; font-weight: 500; }
+
+  /* ── Actions ──────────────────────────────────────────────────────── */
+  .result__actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .result__actions button { font-family: inherit; }
+</style>

@@ -48,3 +48,34 @@ const note = metaFw
   </p>
   <span class="sr-only">{srLabel}.</span>
 </div>
+
+<style>
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+  }
+  .adopt { display: flex; flex-direction: column; gap: 7px; }
+  .adopt__head { display: flex; justify-content: space-between; align-items: baseline; }
+  .adopt__title { font-size: var(--fs-2xs); font-weight: 600; color: var(--fg-1); letter-spacing: -0.01em; }
+  .adopt__src   { font-size: 11px; color: var(--fg-3); }
+  .adopt__track {
+    position: relative; height: 14px; border-radius: 980px;
+    background: var(--bg-2); border: 1px solid var(--border-1); overflow: hidden;
+  }
+  .adopt__tick { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--border-1); z-index: 1; }
+  .adopt__fill {
+    position: relative; height: 100%; border-radius: 980px; z-index: 2;
+    transition: width .42s cubic-bezier(.2,.7,.2,1);
+    display: flex; align-items: center; justify-content: flex-end; min-width: 30px;
+  }
+  .adopt__pct { font-size: 10px; font-weight: 700; padding-right: 8px; font-variant-numeric: tabular-nums; }
+  .adopt__ticks { position: relative; height: 13px; }
+  .adopt__ticklbl {
+    position: absolute; top: 0; transform: translateX(-50%); font-size: 10px;
+    color: var(--fg-3); font-variant-numeric: tabular-nums;
+  }
+  .adopt__note { font-size: var(--fs-2xs); color: var(--fg-3); line-height: 1.45; margin: 0; }
+  @media (prefers-reduced-motion: reduce) { .adopt__fill { transition: none; } }
+  .adopt--compact .adopt__track { height: 11px; }
+  .adopt--compact .adopt__src  { display: none; }
+</style>
