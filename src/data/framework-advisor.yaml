@@ -421,5 +421,25 @@ demos:
     backing: very
     teamsize: mid
     pick: next
+  svelte:
+    appType: saas
+    backend: node
+    hiring: solo
+    ai: rarely
+    capability: library
+    ecosystem: community
+    backing: quite
+    teamsize: small
+    pick: none
+  solid:
+    appType: saas
+    backend: node
+    hiring: solo
+    ai: rarely
+    capability: library
+    ecosystem: build
+    backing: not
+    teamsize: small
+    pick: none
   outofscope:
     appType: mobile-desktop
