@@ -762,7 +762,7 @@ import {
               tabindex="${selected ? '0' : '-1'}"
               class="pcard${selected ? ' is-sel' : ''}"
               data-select="${opt.v}">
-        <span class="pcard__tag">${opt.tag}</span>
+        ${opt.tag ? `<span class="pcard__tag">${opt.tag}</span>` : ''}
         <span class="pcard__label">${opt.label}</span>
         ${lede}
         <span class="pcard__desc">${opt.desc}</span>
