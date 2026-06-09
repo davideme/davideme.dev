@@ -451,13 +451,14 @@
 .oos__pt { font-size: var(--fs-2xs); color: var(--fg-2); line-height: 1.45; }
 
 /* ─── Buttons ─── */
-.btn {
+/* Scoped under .advisor to avoid colliding with the site's global .btn (Layout.astro) */
+.advisor .btn {
   display: inline-flex; align-items: center; gap: 8px; font-family: inherit;
   font-size: var(--fs-sm); font-weight: 500; border-radius: 980px;
   padding: 10px 20px; cursor: pointer; transition: all .18s;
   letter-spacing: -0.01em; border: 1px solid transparent; text-decoration: none;
 }
-.btn-primary   { background: var(--accent); color: #fff; border-color: var(--accent); }
-.btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
-.btn-secondary { background: transparent; color: var(--accent); border-color: var(--accent); }
-.btn-secondary:hover { background: var(--accent); color: #fff; }
+.advisor .btn-primary   { background: var(--accent); color: #fff; border-color: var(--accent); }
+.advisor .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.advisor .btn-secondary { background: transparent; color: var(--accent); border-color: var(--accent); }
+.advisor .btn-secondary:hover { background: var(--accent); color: #fff; }

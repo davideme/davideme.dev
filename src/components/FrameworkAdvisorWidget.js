@@ -28,6 +28,16 @@ const advisorData = JSON.parse(
     return `<svg class="ic${cls ? ' ' + cls : ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`;
   }
 
+  /* Escape user-supplied text for safe interpolation into HTML attributes/markup. */
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   /* ── Data from YAML ─────────────────────────────────────── */
   const { frameworks, meta, questions, outOfScope, demos } = advisorData;
   const PREF_ORDER = ['react', 'vue', 'angular', 'svelte', 'solid'];
@@ -279,8 +289,7 @@ const advisorData = JSON.parse(
     let body = '';
     if (q.kind === 'options') {
       const cols = q.columns || 1;
-      const layout = cols === 2 ? 'row' : 'row';
-      const btns = q.options.map(opt => buildOptionBtn(opt, value === opt.v, layout)).join('');
+      const btns = q.options.map(opt => buildOptionBtn(opt, value === opt.v, 'row')).join('');
       body = `<div class="optgrid optgrid--c${cols}" role="radiogroup" aria-label="${q.title}">${btns}</div>`;
     } else if (q.kind === 'scale') {
       body = buildScale(q.options, value);
@@ -293,7 +302,7 @@ const advisorData = JSON.parse(
     const showOther = q.id === 'backend' && value === 'other';
     const freeInput = showOther ? `
       <div class="freetext">
-        <input type="text" id="fa-freetext" value="${freeText || ''}"
+        <input type="text" id="fa-freetext" value="${esc(freeText)}"
                placeholder="Tell us what you use (optional) — won't block your result"
                aria-label="Describe your backend stack" />
       </div>` : '';
