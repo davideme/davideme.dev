@@ -1,0 +1,50 @@
+---
+// Industry-adoption bar for a framework (optionally framed as a meta framework's base).
+// The fill starts at width:0 and carries data-width; the runtime script animates it to
+// its target when the containing panel becomes visible.
+import advisorData from '../../data/framework-advisor.yaml';
+
+interface Props {
+  fwKey: string;
+  metaKey?: string | null;
+  compact?: boolean;
+}
+
+const { fwKey, metaKey = null, compact = false } = Astro.props;
+const fw = advisorData.frameworks[fwKey];
+const metaFw = metaKey ? advisorData.meta[metaKey] : null;
+
+const pct = fw.usage;
+const AB_MAX = 30;
+const AB_TICKS = [5, 10, 20, 30];
+const width = Math.min(100, (pct / AB_MAX) * 100);
+
+const srLabel = metaFw
+  ? `${metaFw.name} is built on ${fw.name} (${pct}% usage)`
+  : `Industry adoption — ${fw.name} ${pct}% (Stack Overflow Survey 2025)`;
+const note = metaFw
+  ? `${metaFw.name} shares ${fw.name}'s adoption — ${fw.usageNote.toLowerCase()}`
+  : fw.usageNote;
+---
+
+<div class:list={["adopt", { "adopt--compact": compact }]} role="group" aria-label={srLabel}>
+  <div class="adopt__head">
+    <span class="adopt__title">Industry adoption</span>
+    {!compact && <span class="adopt__src">Stack Overflow '25</span>}
+  </div>
+  <div class="adopt__track" aria-hidden="true">
+    {AB_TICKS.map(tk => <span class="adopt__tick" style={`left:${(tk / AB_MAX) * 100}%`}></span>)}
+    <div class="adopt__fill" data-width={width} style={`width:0%;background:${fw.brand}`}>
+      <span class="adopt__pct" style="color:#fff">{pct}%</span>
+    </div>
+  </div>
+  <div class="adopt__ticks" aria-hidden="true">
+    {AB_TICKS.map(tk => <span class="adopt__ticklbl" style={`left:${(tk / AB_MAX) * 100}%`}>{tk}%</span>)}
+  </div>
+  <p class="adopt__note">
+    {metaFw
+      ? <Fragment><strong style="color:var(--fg-1)">{metaFw.name}</strong>{` shares ${fw.name}'s adoption — ${fw.usageNote.toLowerCase()}`}</Fragment>
+      : note}
+  </p>
+  <span class="sr-only">{srLabel}.</span>
+</div>

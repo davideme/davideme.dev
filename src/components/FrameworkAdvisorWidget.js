@@ -1,7 +1,11 @@
 // FrameworkAdvisorWidget — widget logic (extracted from the .astro component).
-// `advisorData` (questionnaire content + framework facts) is injected by the
-// component as a JSON island (<script type="application/json" id="advisor-data">).
-// The recommendation algorithm and all DOM building live here.
+// The questions, result cards, comparison columns and out-of-scope panel are all
+// pre-rendered as static Astro markup (hidden in the DOM). This script is the
+// orchestrator: it runs the recommendation algorithm, reveals the right panel,
+// syncs selection state, and builds only the genuinely dynamic fragments
+// (progress, nav, caveats, the "why" trace and the pick-vs-recommendation verdict).
+//
+// `advisorData` is injected by the component as a JSON island (#advisor-data).
 
 const advisorData = JSON.parse(
   document.getElementById('advisor-data')?.textContent || '{}'
@@ -9,7 +13,8 @@ const advisorData = JSON.parse(
 
 (function () {
   /* ── Icons ───────────────────────────────────────────────── */
-  /* Icon cache — populated at mount from @lucide/astro-rendered sprites */
+  // Cache of the few icons the script injects at runtime, read from the build-time
+  // sprite. Static markup renders its icons via <AdvisorIcon> directly.
   const ICON_SVGS = {};
 
   function initIcons() {
@@ -23,23 +28,12 @@ const advisorData = JSON.parse(
   }
 
   function ic(name, cls) {
-    const key = String(name || '').replace(/^fa[bsr]?\s+/, '').replace(/^fa-/, '');
-    const inner = ICON_SVGS[key] || ICON_SVGS['ellipsis'] || '';
+    const inner = ICON_SVGS[name] || ICON_SVGS['ellipsis'] || '';
     return `<svg class="ic${cls ? ' ' + cls : ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`;
   }
 
-  /* Escape user-supplied text for safe interpolation into HTML attributes/markup. */
-  function esc(s) {
-    return String(s == null ? '' : s)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-  }
-
   /* ── Data from YAML ─────────────────────────────────────── */
-  const { frameworks, meta, questions, outOfScope, demos } = advisorData;
+  const { frameworks, meta, questions, demos } = advisorData;
   const PREF_ORDER = ['react', 'vue', 'angular', 'svelte', 'solid'];
   const JVM_DOTNET = ['java', 'kotlin', 'csharp'];
   const TOTAL = questions.length;
@@ -191,7 +185,7 @@ const advisorData = JSON.parse(
     };
   }
 
-  /* ── HTML builders ──────────────────────────────────────── */
+  /* ── Dynamic fragment builders (the only HTML still built at runtime) ── */
   function buildProgress(index, mode) {
     const current = mode === 'result' ? TOTAL : index + 1;
     const q = questions[Math.min(index, TOTAL - 1)];
@@ -212,166 +206,6 @@ const advisorData = JSON.parse(
         <div class="progress__bar" role="progressbar" aria-valuemin="0" aria-valuemax="${TOTAL}" aria-valuenow="${current}">
           ${segs}
         </div>
-      </div>`;
-  }
-
-  function buildOptionBtn(opt, selected, layout) {
-    const chip = opt.icon ? `<span class="opt__chip">${ic(opt.icon)}</span>` : '';
-    const desc = opt.desc ? `<span class="opt__desc">${opt.desc}</span>` : '';
-    return `
-      <button type="button" role="radio" aria-checked="${selected}"
-              tabindex="${selected ? '0' : '-1'}"
-              class="opt opt--${layout}${selected ? ' is-sel' : ''}${opt.escape ? ' opt--escape' : ''}"
-              data-select="${opt.v}">
-        ${chip}
-        <span class="opt__text">
-          <span class="opt__label">${opt.label}</span>
-          ${desc}
-        </span>
-        <span class="opt__radio" aria-hidden="true">${ic('check')}</span>
-      </button>`;
-  }
-
-  function buildPhilosophyCard(opt, selected) {
-    const lede = opt.lede ? `<span class="pcard__lede">${opt.lede}</span>` : '';
-    return `
-      <button type="button" role="radio" aria-checked="${selected}"
-              tabindex="${selected ? '0' : '-1'}"
-              class="pcard${selected ? ' is-sel' : ''}"
-              data-select="${opt.v}">
-        ${opt.tag ? `<span class="pcard__tag">${opt.tag}</span>` : ''}
-        <span class="pcard__label">${opt.label}</span>
-        ${lede}
-        <span class="pcard__desc">${opt.desc}</span>
-        <span class="pcard__check" aria-hidden="true">${ic('check')}</span>
-      </button>`;
-  }
-
-  function buildScale(opts, value) {
-    const stops = opts.map((opt, i) => {
-      const sel = value === opt.v;
-      const tab = (sel || (!value && i === 0)) ? '0' : '-1';
-      return `
-        <button type="button" role="radio" aria-checked="${sel}"
-                tabindex="${tab}" data-select="${opt.v}"
-                class="scale__stop${sel ? ' is-sel' : ''}">
-          <span class="scale__dot" aria-hidden="true"></span>
-          <span class="scale__label">${opt.label}</span>
-          <span class="scale__desc">${opt.desc}</span>
-        </button>`;
-    }).join('');
-    return `<div class="scale" role="radiogroup"><div class="scale__track" aria-hidden="true"></div>${stops}</div>`;
-  }
-
-  function buildPicker(q, value) {
-    const groups = q.groups.map(g => {
-      const chips = g.options.map(opt => {
-        const sel = value === opt.v;
-        return `<button type="button" role="radio" aria-checked="${sel}" data-select="${opt.v}" class="chip${sel ? ' is-sel' : ''}">${opt.label}</button>`;
-      }).join('');
-      return `
-        <div class="picker__group">
-          <span class="picker__glabel">${g.label}</span>
-          <div class="picker__chips" role="radiogroup" aria-label="${g.label}">${chips}</div>
-        </div>`;
-    }).join('');
-    const noneVal = q.noneValue || 'none';
-    const noneSel = value === noneVal;
-    return `
-      <div class="picker">
-        ${groups}
-        <button type="button" data-select="${noneVal}" class="picker__none${noneSel ? ' is-sel' : ''}">${q.noneLabel || 'No preference yet'}</button>
-      </div>`;
-  }
-
-  function buildQuestion(q, answers, freeText) {
-    const value = answers[q.id];
-    let body = '';
-    if (q.kind === 'options') {
-      const cols = q.columns || 1;
-      const btns = q.options.map(opt => buildOptionBtn(opt, value === opt.v, 'row')).join('');
-      body = `<div class="optgrid optgrid--c${cols}" role="radiogroup" aria-label="${q.title}">${btns}</div>`;
-    } else if (q.kind === 'scale') {
-      body = buildScale(q.options, value);
-    } else if (q.kind === 'cards') {
-      const cards = q.options.map(opt => buildPhilosophyCard(opt, value === opt.v)).join('');
-      body = `<div class="pgrid" role="radiogroup" aria-label="${q.title}">${cards}</div>`;
-    } else if (q.kind === 'picker') {
-      body = buildPicker(q, value);
-    }
-    const showOther = q.id === 'backend' && value === 'other';
-    const freeInput = showOther ? `
-      <div class="freetext">
-        <input type="text" id="fa-freetext" value="${esc(freeText)}"
-               placeholder="Tell us what you use (optional) — won't block your result"
-               aria-label="Describe your backend stack" />
-      </div>` : '';
-    return `
-      <div class="qstep">
-        <div class="qstep__head">
-          <span class="eyebrow">${q.eyebrow}</span>
-          <h3 class="qstep__title">${q.title}</h3>
-          <p class="qstep__sub">${q.sub}</p>
-        </div>
-        ${body}
-        ${freeInput}
-      </div>`;
-  }
-
-  function buildAdoptionBar(fwKey, metaKey, compact) {
-    const fw = frameworks[fwKey];
-    const metaFw = metaKey ? meta[metaKey] : null;
-    const pct   = fw.usage;
-    const AB_MAX = 30;
-    const AB_TICKS = [5, 10, 20, 30];
-    const width = Math.min(100, (pct / AB_MAX) * 100);
-    const fillColor = fw.brand;
-    const ticks = AB_TICKS.map(tk =>
-      `<span class="adopt__tick" style="left:${(tk/AB_MAX)*100}%"></span>`).join('');
-    const tickLabels = AB_TICKS.map(tk =>
-      `<span class="adopt__ticklbl" style="left:${(tk/AB_MAX)*100}%">${tk}%</span>`).join('');
-    const srLabel = metaFw
-      ? `${metaFw.name} is built on ${fw.name} (${pct}% usage)`
-      : `Industry adoption — ${fw.name} ${pct}% (Stack Overflow Survey 2025)`;
-    const note = metaFw
-      ? `<strong style="color:var(--fg-1)">${metaFw.name}</strong> shares ${fw.name}'s adoption — ${fw.usageNote.toLowerCase()}`
-      : fw.usageNote;
-    const srcLabel = compact ? '' : `<span class="adopt__src">Stack Overflow '25</span>`;
-    return `
-      <div class="adopt${compact ? ' adopt--compact' : ''}" role="group" aria-label="${srLabel}">
-        <div class="adopt__head">
-          <span class="adopt__title">Industry adoption</span>
-          ${srcLabel}
-        </div>
-        <div class="adopt__track" aria-hidden="true">
-          ${ticks}
-          <div class="adopt__fill" data-width="${width}" style="width:0%;background:${fillColor}">
-            <span class="adopt__pct" style="color:#fff">${pct}%</span>
-          </div>
-        </div>
-        <div class="adopt__ticks" aria-hidden="true">${tickLabels}</div>
-        <p class="adopt__note">${note}</p>
-        <span class="sr-only">${srLabel}.</span>
-      </div>`;
-  }
-
-  function buildBullets(bullets, showAnchors) {
-    const items = bullets.map(b => {
-      const content = showAnchors
-        ? `<a href="${b.anchor}">${b.text}</a>`
-        : `<span>${b.text}</span>`;
-      return `<li>${ic('circle-check', 'rb-ic')} ${content}</li>`;
-    }).join('');
-    return `<ul class="rbullets">${items}</ul>`;
-  }
-
-  function buildMetaRow(fwKey) {
-    const fw = frameworks[fwKey];
-    return `
-      <div class="rmeta">
-        <div class="rmeta__cell"><span class="rmeta__k">Capability</span><span class="rmeta__v">${fw.capability}</span></div>
-        <div class="rmeta__cell"><span class="rmeta__k">Ecosystem</span><span class="rmeta__v">${fw.ecosystem}</span></div>
-        <div class="rmeta__cell"><span class="rmeta__k">Backing</span><span class="rmeta__v">${fw.backing}</span></div>
       </div>`;
   }
 
@@ -396,119 +230,28 @@ const advisorData = JSON.parse(
       </div>`;
   }
 
-  function buildFwBadge(fwKey, size) {
-    const fw = frameworks[fwKey];
-    return `<span class="fwbadge fwbadge--${size || 'lg'}" style="--fw-color:${fw.brand}">
-      <span class="fwbadge__dot" aria-hidden="true"></span>
-      ${fw.name}
-    </span>`;
-  }
-
-  function buildSingleResult(result, whyOpen) {
-    const { rec, caveats, trace } = result;
-    const fw = frameworks[rec];
-    return `
-      <div class="result" aria-live="polite">
-        <div class="result__top">
-          <span class="eyebrow">Our recommendation</span>
-          <div>${buildFwBadge(rec, 'lg')}</div>
-          <p class="result__reason">${fw.reason}</p>
-        </div>
-        ${buildBullets(fw.bullets, true)}
-        ${buildMetaRow(rec)}
-        ${buildAdoptionBar(rec, null, false)}
-        ${buildCaveats(caveats)}
-        ${buildWhy(trace, whyOpen)}
-        <div class="result__actions">
-          <button type="button" class="btn btn-secondary" data-action="copy" data-rec="${rec}">${ic('copy')} Copy result</button>
-          <button type="button" class="btn btn-primary" data-action="restart">${ic('rotate-left')} Start over</button>
-        </div>
-      </div>`;
-  }
-
-  function buildComparisonResult(result, pickKey, whyOpen) {
-    const { rec, caveats, trace } = result;
-    const v = verdict(pickKey, rec);
-    const recFw = frameworks[rec];
-    const pickBaseFw = frameworks[v.pickBase];
-    const sameColumn = v.state === 'agreement';
-    const metaKey = meta[pickKey] ? pickKey : null;
-
-    const verdictIcon = {
-      agreement: 'circle-check',
-      partial: 'code-merge',
-      divergence: 'arrows-split-up-and-left',
-    }[v.state] || 'circle-check';
-
-    const reasonItems = v.reasons.map(b =>
-      `<li><a href="${b.anchor}">${b.text}</a></li>`).join('');
-    const reasonsList = reasonItems ? `<ul class="verdict__reasons">${reasonItems}</ul>` : '';
-
-    const cmpInner = sameColumn ? `
-      <div class="cmp cmp--agree">
-        <div class="cmp__col cmp__col--rec cmp__col--solo">
-          ${buildFwBadge(rec, 'md')}
-          <span class="cmp__meta">${recFw.capability} · ${recFw.backing}</span>
-          ${buildBullets(recFw.bullets.slice(0, 3), true)}
-          ${buildAdoptionBar(rec, null, true)}
-        </div>
-      </div>` : `
-      <div class="cmp">
-        <div class="cmp__col cmp__col--pick">
-          <span class="cmp__role">Your pick</span>
-          ${buildFwBadge(v.pickBase, 'md')}
-          ${metaKey ? `<span class="cmp__meta">${v.pickName} — meta framework on ${pickBaseFw.name}</span>` : ''}
-          ${buildBullets(pickBaseFw.bullets.slice(0, 3), false)}
-          ${buildAdoptionBar(v.pickBase, metaKey, true)}
-        </div>
-        <div class="cmp__vs" aria-hidden="true"><span>vs</span></div>
-        <div class="cmp__col cmp__col--rec">
-          <span class="cmp__role cmp__role--rec">Our recommendation</span>
-          ${buildFwBadge(rec, 'md')}
-          <span class="cmp__meta">${recFw.capability} · ${recFw.backing}</span>
-          ${buildBullets(recFw.bullets.slice(0, 3), true)}
-          ${buildAdoptionBar(rec, null, true)}
-        </div>
-      </div>`;
-
-    return `
-      <div class="result result--cmp" aria-live="polite">
-        <div class="result__top">
-          <span class="eyebrow">Your pick vs. our recommendation</span>
-        </div>
-        ${cmpInner}
-        <div class="verdict verdict--${v.state}">
-          <div class="verdict__icon" aria-hidden="true">${ic(verdictIcon)}</div>
-          <div class="verdict__body">
-            <p class="verdict__headline">${v.headline}</p>
-            <p class="verdict__detail">${v.detail}</p>
-            ${reasonsList}
-          </div>
-        </div>
-        ${buildCaveats(caveats)}
-        ${buildWhy(trace, whyOpen)}
-        <div class="result__actions">
-          <button type="button" class="btn btn-secondary" data-action="copy" data-rec="${rec}">${ic('copy')} Copy result</button>
-          <button type="button" class="btn btn-primary" data-action="restart">${ic('rotate-left')} Start over</button>
-        </div>
-      </div>`;
-  }
-
-  function buildOutOfScope() {
-    const o = outOfScope;
-    const paths = o.paths.map(p =>
-      `<div class="oos__path"><span class="oos__pk">${p.label}</span><span class="oos__pt">${p.text}</span></div>`
-    ).join('');
-    return `
-      <div class="result result--oos" aria-live="polite">
-        <div class="oos__icon" aria-hidden="true">${ic('compass')}</div>
-        <span class="eyebrow">Out of scope</span>
-        <h3 class="oos__title">${o.title}</h3>
-        <p class="oos__body">${o.body}</p>
-        <div class="oos__paths">${paths}</div>
-        <div class="result__actions">
-          <button type="button" class="btn btn-primary" data-action="restart">${ic('rotate-left')} Start over</button>
-        </div>
+  function buildNav(root, q) {
+    const nm = root.querySelector('.advisor__nav-mount');
+    if (!nm) return;
+    const canContinue = state.answers[q.id] !== undefined;
+    const hint = q.optional ? "Optional — skip if you're open" : 'Pick one to continue';
+    const spacer = `<span class="navbtn navbtn--spacer" aria-hidden="true"></span>`;
+    const backBtn = state.index === 0
+      ? spacer
+      : `<button type="button" class="navbtn navbtn--ghost" data-action="back">${ic('arrow-left')} Back</button>`;
+    let rightBtn;
+    if (q.optional) {
+      rightBtn = `<button type="button" class="navbtn navbtn--ghost" data-action="skip">${ic('arrow-right')} Skip</button>`;
+    } else if (canContinue) {
+      rightBtn = `<button type="button" class="navbtn navbtn--solid" data-action="next">Continue ${ic('arrow-right')}</button>`;
+    } else {
+      rightBtn = spacer;
+    }
+    nm.innerHTML = `
+      <div class="advisor__nav" role="navigation" aria-label="Question navigation">
+        ${backBtn}
+        <span class="advisor__hint">${hint}</span>
+        ${rightBtn}
       </div>`;
   }
 
@@ -519,123 +262,251 @@ const advisorData = JSON.parse(
     answers: {},
     freeText: '',
     whyOpen: false,
-    copyDone: false,
   };
   let lastDir = 'fwd';
   let busy = false;
+  let currentResult = null;   // memoised recommend() output for the active result panel
 
   function getRoot() {
     return document.getElementById('framework-advisor-root');
   }
 
-  function animateAdoptionBars(root) {
-    root.querySelectorAll('.adopt__fill[data-width]').forEach(el => {
-      const w = el.dataset.width;
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        el.style.width = w + '%';
-      }));
+  function stages(root) {
+    return root.querySelectorAll('.advisor__stage-mount > .stage');
+  }
+
+  function currentVisibleStage() {
+    const root = getRoot();
+    return root && root.querySelector('.advisor__stage-mount > .stage:not([hidden])');
+  }
+
+  function animateAdoptionBars(scope) {
+    scope.querySelectorAll('.adopt__fill[data-width]').forEach(el => {
+      const target = el.dataset.width + '%';
+      el.style.width = '0%';
+      void el.offsetWidth; // reflow so the transition replays from 0
+      const land = () => { el.style.width = target; };
+      // rAF is throttled while the tab is hidden, so only rely on it when visible —
+      // otherwise set the final width directly so the bar always lands correctly.
+      if (!REDUCE && document.visibilityState === 'visible') {
+        requestAnimationFrame(() => requestAnimationFrame(land));
+      } else {
+        land();
+      }
     });
   }
 
-  function renderInto(root) {
-    const q = questions[Math.min(state.index, TOTAL - 1)];
-    const showProgress = state.mode !== 'oos';
-    const canContinue = state.mode === 'q' && state.answers[q.id] !== undefined;
-    const isOther = state.mode === 'q' && q.id === 'backend' && state.answers.backend === 'other';
-    const result = state.mode === 'result' ? recommend(state.answers) : null;
+  function reveal(target, dir) {
+    const root = getRoot();
+    stages(root).forEach(s => {
+      if (s !== target) {
+        s.hidden = true;
+        s.classList.remove('enter-fwd', 'enter-back', 'exit-fwd', 'exit-back');
+      }
+    });
+    target.hidden = false;
+    target.classList.remove('exit-fwd', 'exit-back', 'enter-fwd', 'enter-back');
+    if (!REDUCE) {
+      void target.offsetWidth;
+      target.classList.add('enter-' + dir);
+    }
+  }
 
-    // Header restart button
-    const restartBtn = root.querySelector('.advisor__head-restart');
-    if (restartBtn) {
-      if (state.mode === 'result' || state.mode === 'oos') {
-        restartBtn.style.display = '';
-        restartBtn.innerHTML = `<button type="button" class="advisor__restart-btn" data-action="restart" title="Start over" aria-label="Start over">${ic('rotate-left')}</button>`;
+  // Apply selection highlight, roving tabindex and the free-text value to a question panel.
+  function syncQuestion(panel, q) {
+    const value = state.answers[q.id];
+    const rovers = panel.querySelectorAll('.opt, .pcard, .scale__stop');
+    let hasSelected = false;
+    panel.querySelectorAll('[data-select]').forEach(btn => {
+      const sel = btn.dataset.select === value;
+      if (sel) hasSelected = true;
+      btn.setAttribute('aria-checked', sel ? 'true' : 'false');
+      btn.classList.toggle('is-sel', sel);
+      if (btn.matches('.opt, .pcard, .scale__stop')) btn.tabIndex = sel ? 0 : -1;
+    });
+    // Keep one roving control tabbable when nothing is selected yet.
+    if (!hasSelected && rovers[0]) rovers[0].tabIndex = 0;
+
+    const ft = panel.querySelector('[data-freetext]');
+    if (ft) {
+      const show = q.id === 'backend' && value === 'other';
+      ft.hidden = !show;
+      const input = ft.querySelector('input');
+      if (input) input.value = state.freeText || '';
+    }
+  }
+
+  function fillResult(panel, result) {
+    const cav = panel.querySelector('[data-caveats-mount]');
+    if (cav) cav.innerHTML = buildCaveats(result.caveats);
+    const why = panel.querySelector('[data-why-mount]');
+    if (why) why.innerHTML = buildWhy(result.trace, state.whyOpen);
+  }
+
+  function composeComparison(panel, result, pickKey) {
+    const root = getRoot();
+    const v = verdict(pickKey, result.rec);
+    const metaKey = meta[pickKey] ? pickKey : null;
+    const cloneCol = fwKey =>
+      root.querySelector(`.advisor__parts [data-column="${fwKey}"]`).cloneNode(true);
+
+    const verdictIcon = {
+      agreement: 'circle-check', partial: 'code-merge', divergence: 'arrows-split-up-and-left',
+    }[v.state] || 'circle-check';
+
+    const reasonsList = v.reasons.length
+      ? `<ul class="verdict__reasons">${v.reasons.map(b => `<li><a href="${b.anchor}">${b.text}</a></li>`).join('')}</ul>`
+      : '';
+
+    let cmp;
+    if (v.state === 'agreement') {
+      const rec = cloneCol(result.rec);
+      rec.classList.add('cmp__col--rec', 'cmp__col--solo');
+      const role = rec.querySelector('[data-role]');
+      if (role) role.remove();
+      const wrap = document.createElement('div');
+      wrap.className = 'cmp cmp--agree';
+      wrap.appendChild(rec);
+      cmp = wrap.outerHTML;
+    } else {
+      const pickCol = cloneCol(v.pickBase);
+      pickCol.classList.add('cmp__col--pick');
+      pickCol.querySelector('[data-role]').textContent = 'Your pick';
+      const metaEl = pickCol.querySelector('[data-meta]');
+      if (metaKey) {
+        metaEl.textContent = `${v.pickName} — meta framework on ${frameworks[v.pickBase].name}`;
+        const note = pickCol.querySelector('.adopt__note');
+        if (note) {
+          const baseFw = frameworks[v.pickBase];
+          note.innerHTML = `<strong style="color:var(--fg-1)">${v.pickName}</strong> shares ${baseFw.name}'s adoption — ${baseFw.usageNote.toLowerCase()}`;
+        }
+      } else if (metaEl) {
+        metaEl.remove();
+      }
+
+      const recCol = cloneCol(result.rec);
+      recCol.classList.add('cmp__col--rec');
+      const recRole = recCol.querySelector('[data-role]');
+      recRole.textContent = 'Our recommendation';
+      recRole.classList.add('cmp__role--rec');
+
+      const wrap = document.createElement('div');
+      wrap.className = 'cmp';
+      wrap.appendChild(pickCol);
+      const vs = document.createElement('div');
+      vs.className = 'cmp__vs';
+      vs.setAttribute('aria-hidden', 'true');
+      vs.innerHTML = '<span>vs</span>';
+      wrap.appendChild(vs);
+      wrap.appendChild(recCol);
+      cmp = wrap.outerHTML;
+    }
+
+    panel.querySelector('.stage__inner').innerHTML = `
+      <div class="result result--cmp" aria-live="polite">
+        <div class="result__top">
+          <span class="eyebrow">Your pick vs. our recommendation</span>
+        </div>
+        ${cmp}
+        <div class="verdict verdict--${v.state}">
+          <div class="verdict__icon" aria-hidden="true">${ic(verdictIcon)}</div>
+          <div class="verdict__body">
+            <p class="verdict__headline">${v.headline}</p>
+            <p class="verdict__detail">${v.detail}</p>
+            ${reasonsList}
+          </div>
+        </div>
+        <div data-caveats-mount></div>
+        <div data-why-mount></div>
+        <div class="result__actions">
+          <button type="button" class="btn btn-secondary" data-action="copy" data-rec="${result.rec}">${ic('copy')} Copy result</button>
+          <button type="button" class="btn btn-primary" data-action="restart">${ic('rotate-left')} Start over</button>
+        </div>
+      </div>`;
+    fillResult(panel, result);
+  }
+
+  // Compute the active panel, fill its dynamic bits, and reveal it.
+  function setup() {
+    const root = getRoot();
+    if (!root) return;
+    const mode = state.mode;
+
+    // Header restart button (result / oos only)
+    const headRestart = root.querySelector('.advisor__head-restart');
+    if (headRestart) {
+      if (mode === 'result' || mode === 'oos') {
+        headRestart.style.display = '';
+        headRestart.innerHTML = `<button type="button" class="advisor__restart-btn" data-action="restart" title="Start over" aria-label="Start over">${ic('rotate-left')}</button>`;
       } else {
-        restartBtn.style.display = 'none';
-        restartBtn.innerHTML = '';
+        headRestart.style.display = 'none';
+        headRestart.innerHTML = '';
       }
     }
 
     // Progress
     const pm = root.querySelector('.advisor__progress-mount');
-    if (pm) pm.innerHTML = showProgress ? buildProgress(state.index, state.mode) : '';
+    if (pm) pm.innerHTML = mode !== 'oos' ? buildProgress(state.index, mode) : '';
 
-    // Stage
-    const sm = root.querySelector('.advisor__stage-mount');
-    if (sm) {
-      let stageInner = '';
-      if (state.mode === 'q') {
-        stageInner = buildQuestion(q, state.answers, state.freeText);
-      } else if (state.mode === 'result') {
-        const hasPick = state.answers.pick && state.answers.pick !== 'none';
-        stageInner = hasPick
-          ? buildComparisonResult(result, state.answers.pick, state.whyOpen)
-          : buildSingleResult(result, state.whyOpen);
+    let target;
+    if (mode === 'q') {
+      const q = questions[state.index];
+      target = root.querySelector(`.stage[data-panel="q"][data-step="${state.index}"]`);
+      syncQuestion(target, q);
+      buildNav(root, q);
+    } else if (mode === 'result') {
+      const result = recommend(state.answers);
+      currentResult = result;
+      const hasPick = state.answers.pick && state.answers.pick !== 'none';
+      if (hasPick) {
+        target = root.querySelector('.stage[data-panel="comparison"]');
+        composeComparison(target, result, state.answers.pick);
       } else {
-        stageInner = buildOutOfScope();
+        target = root.querySelector(`.stage[data-panel="result"][data-rec="${result.rec}"]`);
+        fillResult(target, result);
       }
-      sm.innerHTML = `<div class="stage enter-${lastDir}"><div class="stage__inner">${stageInner}</div></div>`;
-      animateAdoptionBars(sm);
+      clearNav(root);
+    } else {
+      target = root.querySelector('.stage[data-panel="oos"]');
+      clearNav(root);
     }
 
-    // Nav
+    if (target) {
+      reveal(target, lastDir);
+      if (mode === 'result') animateAdoptionBars(target);
+    }
+  }
+
+  function clearNav(root) {
     const nm = root.querySelector('.advisor__nav-mount');
-    if (nm) {
-      if (state.mode !== 'q') {
-        nm.innerHTML = '';
-      } else {
-        const hint = q.optional ? 'Optional — skip if you\'re open' : 'Pick one to continue';
-        const backBtn = state.index === 0
-          ? `<span class="navbtn navbtn--spacer" aria-hidden="true"></span>`
-          : `<button type="button" class="navbtn navbtn--ghost" data-action="back">${ic('arrow-left')} Back</button>`;
-        let rightBtn = '';
-        if (q.optional) {
-          rightBtn = `<button type="button" class="navbtn navbtn--ghost" data-action="skip">${ic('arrow-right')} Skip</button>`;
-        } else if (isOther || canContinue) {
-          rightBtn = `<button type="button" class="navbtn navbtn--solid" data-action="next"${canContinue ? '' : ' disabled'}>Continue ${ic('arrow-right')}</button>`;
-        } else {
-          rightBtn = `<span class="navbtn navbtn--spacer" aria-hidden="true"></span>`;
-        }
-        nm.innerHTML = `
-          <div class="advisor__nav" role="navigation" aria-label="Question navigation">
-            ${backBtn}
-            <span class="advisor__hint">${hint}</span>
-            ${rightBtn}
-          </div>`;
-      }
-    }
-
-    attachListeners(root);
+    if (nm) nm.innerHTML = '';
   }
 
   function go(nextMode, nextIndex, dir) {
     if (busy) return;
     lastDir = dir || 'fwd';
-    const dur = (REDUCE) ? 0 : 200;
-    if (dur === 0) {
+    const apply = () => {
       state.mode = nextMode;
-      state.index = nextIndex !== undefined ? nextIndex : state.index;
+      if (nextIndex !== undefined) state.index = nextIndex;
       state.whyOpen = false;
-      const root = getRoot();
-      if (root) renderInto(root);
-      return;
-    }
+      setup();
+    };
+    if (REDUCE) { apply(); return; }
     busy = true;
-    const root = getRoot();
-    const stageMnt = root && root.querySelector('.advisor__stage-mount');
-    const stageEl  = stageMnt && stageMnt.querySelector('.stage');
-    if (stageEl) {
-      stageEl.classList.remove('enter-fwd', 'enter-back');
-      stageEl.classList.add('exit-' + lastDir);
+    const cur = currentVisibleStage();
+    if (cur) {
+      cur.classList.remove('enter-fwd', 'enter-back');
+      cur.classList.add('exit-' + lastDir);
     }
-    setTimeout(() => {
-      state.mode  = nextMode;
-      state.index = nextIndex !== undefined ? nextIndex : state.index;
-      state.whyOpen = false;
-      busy = false;
-      const r = getRoot();
-      if (r) renderInto(r);
-    }, dur);
+    setTimeout(() => { busy = false; apply(); }, 200);
+  }
+
+  function refreshActiveQuestion() {
+    const root = getRoot();
+    const q = questions[state.index];
+    const panel = root.querySelector(`.stage[data-panel="q"][data-step="${state.index}"]`);
+    if (panel) syncQuestion(panel, q);
+    buildNav(root, q);
   }
 
   function select(qId, value) {
@@ -646,10 +517,12 @@ const advisorData = JSON.parse(
       return;
     }
     if (qId === 'backend' && value === 'other') {
-      const root = getRoot();
-      if (root) renderInto(root); // re-render to show free-text input
+      refreshActiveQuestion(); // reveal free-text input without advancing
       return;
     }
+
+    // Immediate selection feedback on the active panel before the auto-advance.
+    refreshActiveQuestion();
 
     const advance = () => {
       if (state.index >= TOTAL - 1) go('result', undefined, 'fwd');
@@ -660,85 +533,68 @@ const advisorData = JSON.parse(
   }
 
   function restart() {
-    state = { mode: 'q', index: 0, answers: {}, freeText: '', whyOpen: false, copyDone: false };
+    state = { mode: 'q', index: 0, answers: {}, freeText: '', whyOpen: false };
     go('q', 0, 'back');
   }
 
-  function attachListeners(root) {
-    // Delegated click handler
-    root.addEventListener('click', onRootClick, { once: true });
-
-    // Free-text input
-    const ft = root.querySelector('#fa-freetext');
-    if (ft) {
-      ft.addEventListener('input', e => { state.freeText = e.target.value; });
-      ft.addEventListener('click', e => e.stopPropagation());
-    }
-
-    // Arrow-key roving for radiogroups
-    root.querySelectorAll('[role="radiogroup"]').forEach(group => {
-      const btns = Array.from(group.querySelectorAll('[role="radio"]'));
-      btns.forEach((btn, i) => {
-        btn.addEventListener('keydown', e => {
-          const next = ['ArrowRight', 'ArrowDown'].includes(e.key);
-          const prev = ['ArrowLeft', 'ArrowUp'].includes(e.key);
-          if (!next && !prev) return;
-          e.preventDefault();
-          let ni = i + (next ? 1 : -1);
-          if (ni < 0) ni = btns.length - 1;
-          if (ni >= btns.length) ni = 0;
-          btns[ni] && btns[ni].focus();
-        });
-      });
-    });
-  }
-
+  /* ── Event handling (delegated, attached once) ──────────── */
   function onRootClick(e) {
     const target = e.target.closest('[data-select]');
-    const action = e.target.closest('[data-action]');
-
     if (target) {
-      const q = questions[state.index];
-      select(q.id, target.dataset.select);
+      select(questions[state.index].id, target.dataset.select);
       return;
     }
-    if (action) {
-      const act = action.dataset.action;
-      if (act === 'back') {
-        if (state.mode === 'result' || state.mode === 'oos') go('q', TOTAL - 1, 'back');
-        else if (state.index > 0) go('q', state.index - 1, 'back');
-      } else if (act === 'next') {
-        if (state.index >= TOTAL - 1) go('result', undefined, 'fwd');
-        else go('q', state.index + 1, 'fwd');
-      } else if (act === 'skip') {
-        state.answers = { ...state.answers, pick: questions[state.index].noneValue || 'none' };
-        go('result', undefined, 'fwd');
-      } else if (act === 'restart') {
-        restart();
-      } else if (act === 'why-toggle') {
-        state.whyOpen = !state.whyOpen;
-        const root = getRoot();
-        if (root) renderInto(root);
-      } else if (act === 'copy') {
-        const fwKey = action.dataset.rec;
-        const fw = frameworks[fwKey];
-        const text = `Framework Advisor recommends ${fw.name} — ${fw.reason}`;
-        const fin = () => {
-          action.innerHTML = `${ic('check')} Copied`;
-          setTimeout(() => {
-            action.innerHTML = `${ic('copy')} Copy result`;
-          }, 1800);
-        };
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text).then(fin).catch(fin);
-        } else { fin(); }
-      }
-      return;
-    }
+    const action = e.target.closest('[data-action]');
+    if (!action) return;
+    const act = action.dataset.action;
 
-    // Re-attach listener if nothing handled (click on inert area)
-    const root = getRoot();
-    if (root) root.addEventListener('click', onRootClick, { once: true });
+    if (act === 'back') {
+      if (state.mode === 'result' || state.mode === 'oos') go('q', TOTAL - 1, 'back');
+      else if (state.index > 0) go('q', state.index - 1, 'back');
+    } else if (act === 'next') {
+      if (state.index >= TOTAL - 1) go('result', undefined, 'fwd');
+      else go('q', state.index + 1, 'fwd');
+    } else if (act === 'skip') {
+      state.answers = { ...state.answers, pick: questions[state.index].noneValue || 'none' };
+      go('result', undefined, 'fwd');
+    } else if (act === 'restart') {
+      restart();
+    } else if (act === 'why-toggle') {
+      state.whyOpen = !state.whyOpen;
+      const panel = currentVisibleStage();
+      const why = panel && panel.querySelector('[data-why-mount]');
+      if (why && currentResult) why.innerHTML = buildWhy(currentResult.trace, state.whyOpen);
+    } else if (act === 'copy') {
+      const fw = frameworks[action.dataset.rec];
+      const text = `Framework Advisor recommends ${fw.name} — ${fw.reason}`;
+      const fin = () => {
+        action.innerHTML = `${ic('check')} Copied`;
+        setTimeout(() => { action.innerHTML = `${ic('copy')} Copy result`; }, 1800);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(fin).catch(fin);
+      } else { fin(); }
+    }
+  }
+
+  function onRootKeydown(e) {
+    const radio = e.target.closest('[role="radio"]');
+    if (!radio) return;
+    const next = ['ArrowRight', 'ArrowDown'].includes(e.key);
+    const prev = ['ArrowLeft', 'ArrowUp'].includes(e.key);
+    if (!next && !prev) return;
+    const group = radio.closest('[role="radiogroup"]');
+    if (!group) return;
+    e.preventDefault();
+    const btns = Array.from(group.querySelectorAll('[role="radio"]'));
+    let ni = btns.indexOf(radio) + (next ? 1 : -1);
+    if (ni < 0) ni = btns.length - 1;
+    if (ni >= btns.length) ni = 0;
+    btns[ni] && btns[ni].focus();
+  }
+
+  function onRootInput(e) {
+    if (e.target && e.target.id === 'fa-freetext') state.freeText = e.target.value;
   }
 
   /* ── Mount ──────────────────────────────────────────────── */
@@ -746,7 +602,10 @@ const advisorData = JSON.parse(
     const root = getRoot();
     if (!root) return;
     initIcons();
-    renderInto(root);
+    root.addEventListener('click', onRootClick);
+    root.addEventListener('keydown', onRootKeydown);
+    root.addEventListener('input', onRootInput);
+    setup();
   }
 
   if (document.readyState === 'loading') {

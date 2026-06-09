@@ -1,0 +1,17 @@
+---
+// Coloured-dot + name badge for a framework.
+import advisorData from '../../data/framework-advisor.yaml';
+
+interface Props {
+  fwKey: string;
+  size?: 'lg' | 'md';
+}
+
+const { fwKey, size = 'lg' } = Astro.props;
+const fw = advisorData.frameworks[fwKey];
+---
+
+<span class={`fwbadge fwbadge--${size}`} style={`--fw-color:${fw.brand}`}>
+  <span class="fwbadge__dot" aria-hidden="true"></span>
+  {fw.name}
+</span>

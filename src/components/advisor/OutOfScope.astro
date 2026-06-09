@@ -1,0 +1,27 @@
+---
+// Static "this guide doesn't cover your case" panel, shown when Q1 = mobile/desktop.
+import advisorData from '../../data/framework-advisor.yaml';
+import AdvisorIcon from './AdvisorIcon.astro';
+
+const o = advisorData.outOfScope;
+---
+
+<div class="result result--oos" aria-live="polite">
+  <div class="oos__icon" aria-hidden="true"><AdvisorIcon name="compass" /></div>
+  <span class="eyebrow">Out of scope</span>
+  <h3 class="oos__title">{o.title}</h3>
+  <p class="oos__body">{o.body}</p>
+  <div class="oos__paths">
+    {o.paths.map(p => (
+      <div class="oos__path">
+        <span class="oos__pk">{p.label}</span>
+        <span class="oos__pt">{p.text}</span>
+      </div>
+    ))}
+  </div>
+  <div class="result__actions">
+    <button type="button" class="btn btn-primary" data-action="restart">
+      <AdvisorIcon name="rotate-left" /> Start over
+    </button>
+  </div>
+</div>

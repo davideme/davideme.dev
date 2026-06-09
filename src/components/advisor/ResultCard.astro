@@ -1,0 +1,47 @@
+---
+// Single-framework recommendation card. Everything here is static (from the YAML);
+// the runtime script reveals the matching card and injects the two computed pieces
+// into the caveats / why mounts.
+import advisorData from '../../data/framework-advisor.yaml';
+import AdvisorIcon from './AdvisorIcon.astro';
+import FrameworkBadge from './FrameworkBadge.astro';
+import Bullets from './Bullets.astro';
+import AdoptionBar from './AdoptionBar.astro';
+
+interface Props {
+  fwKey: string;
+}
+
+const { fwKey } = Astro.props;
+const fw = advisorData.frameworks[fwKey];
+---
+
+<div class="result" aria-live="polite">
+  <div class="result__top">
+    <span class="eyebrow">Our recommendation</span>
+    <div><FrameworkBadge fwKey={fwKey} size="lg" /></div>
+    <p class="result__reason">{fw.reason}</p>
+  </div>
+
+  <Bullets fwKey={fwKey} />
+
+  <div class="rmeta">
+    <div class="rmeta__cell"><span class="rmeta__k">Capability</span><span class="rmeta__v">{fw.capability}</span></div>
+    <div class="rmeta__cell"><span class="rmeta__k">Ecosystem</span><span class="rmeta__v">{fw.ecosystem}</span></div>
+    <div class="rmeta__cell"><span class="rmeta__k">Backing</span><span class="rmeta__v">{fw.backing}</span></div>
+  </div>
+
+  <AdoptionBar fwKey={fwKey} />
+
+  <div data-caveats-mount></div>
+  <div data-why-mount></div>
+
+  <div class="result__actions">
+    <button type="button" class="btn btn-secondary" data-action="copy" data-rec={fwKey}>
+      <AdvisorIcon name="copy" /> Copy result
+    </button>
+    <button type="button" class="btn btn-primary" data-action="restart">
+      <AdvisorIcon name="rotate-left" /> Start over
+    </button>
+  </div>
+</div>

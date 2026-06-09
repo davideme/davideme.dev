@@ -1,0 +1,23 @@
+---
+// Reason bullets for a framework, each linking to the relevant article section.
+import advisorData from '../../data/framework-advisor.yaml';
+import AdvisorIcon from './AdvisorIcon.astro';
+
+interface Props {
+  fwKey: string;
+  limit?: number;
+}
+
+const { fwKey, limit } = Astro.props;
+const all = advisorData.frameworks[fwKey].bullets;
+const bullets = limit ? all.slice(0, limit) : all;
+---
+
+<ul class="rbullets">
+  {bullets.map(b => (
+    <li>
+      <AdvisorIcon name="circle-check" class="rb-ic" />
+      <a href={b.anchor}>{b.text}</a>
+    </li>
+  ))}
+</ul>

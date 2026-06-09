@@ -1,0 +1,25 @@
+---
+// Reusable comparison column body for one framework. Lives hidden in a parts bin;
+// the widget script clones the two relevant columns to compose the "your pick vs our
+// recommendation" view, then sets the role label, column modifier and (for meta-
+// framework picks) the meta note at runtime.
+import advisorData from '../../data/framework-advisor.yaml';
+import FrameworkBadge from './FrameworkBadge.astro';
+import Bullets from './Bullets.astro';
+import AdoptionBar from './AdoptionBar.astro';
+
+interface Props {
+  fwKey: string;
+}
+
+const { fwKey } = Astro.props;
+const fw = advisorData.frameworks[fwKey];
+---
+
+<div class="cmp__col" data-column={fwKey}>
+  <span class="cmp__role" data-role></span>
+  <FrameworkBadge fwKey={fwKey} size="md" />
+  <span class="cmp__meta" data-meta>{`${fw.capability} · ${fw.backing}`}</span>
+  <Bullets fwKey={fwKey} limit={3} />
+  <AdoptionBar fwKey={fwKey} compact />
+</div>

@@ -1,60 +1,36 @@
 ---
 import advisorData from '../data/framework-advisor.yaml';
-import {
-  WandSparkles, Layers, Smartphone, TrendingUp, ShoppingCart, SquareArrowOutUpRight,
-  Coffee, Zap, Hash, Braces, Terminal, Package, Ellipsis,
-  Users, GitBranch, User, CircleQuestionMark, Building2, ShieldCheck, UsersRound,
-  Rocket, Network, Landmark, CircleCheck, TriangleAlert, Route,
-  ChevronDown, Copy, Check, RotateCcw, ArrowLeft, ArrowRight,
-  GitMerge, GitFork, Compass,
-} from '@lucide/astro';
+import AdvisorIcon from './advisor/AdvisorIcon.astro';
+import QuestionStep from './advisor/QuestionStep.astro';
+import ResultCard from './advisor/ResultCard.astro';
+import FrameworkColumn from './advisor/FrameworkColumn.astro';
+import OutOfScope from './advisor/OutOfScope.astro';
 import './FrameworkAdvisorWidget.css';
+
+const { questions } = advisorData;
+const fwKeys = ['react', 'vue', 'angular', 'svelte', 'solid'];
+
+// Icons the runtime script injects dynamically (nav, caveats, why, verdict, copy
+// feedback, header restart). Static parts render their icons via <AdvisorIcon> directly.
+const spriteIcons = [
+  'arrow-left', 'arrow-right', 'triangle-exclamation', 'route', 'chevron-down',
+  'copy', 'check', 'rotate-left', 'circle-check', 'code-merge',
+  'arrows-split-up-and-left', 'ellipsis',
+];
 ---
 
-<!-- Hidden SVG sprite — icons rendered by @lucide/astro at build time, read by JS at runtime -->
+<!-- Hidden sprite — the few icons the script injects at runtime, rendered at build time -->
 <div id="advisor-icon-sprites" style="display:none" aria-hidden="true">
-  <span id="advisor-icon-wand-magic-sparkles"><WandSparkles /></span>
-  <span id="advisor-icon-layer-group"><Layers /></span>
-  <span id="advisor-icon-mobile-screen"><Smartphone /></span>
-  <span id="advisor-icon-chart-line"><TrendingUp /></span>
-  <span id="advisor-icon-cart-shopping"><ShoppingCart /></span>
-  <span id="advisor-icon-arrow-up-right-from-square"><SquareArrowOutUpRight /></span>
-  <span id="advisor-icon-mug-hot"><Coffee /></span>
-  <span id="advisor-icon-bolt"><Zap /></span>
-  <span id="advisor-icon-hashtag"><Hash /></span>
-  <span id="advisor-icon-python"><Braces /></span>
-  <span id="advisor-icon-golang"><Terminal /></span>
-  <span id="advisor-icon-node-js"><Package /></span>
-  <span id="advisor-icon-ellipsis"><Ellipsis /></span>
-  <span id="advisor-icon-users"><Users /></span>
-  <span id="advisor-icon-code-branch"><GitBranch /></span>
-  <span id="advisor-icon-user"><User /></span>
-  <span id="advisor-icon-circle-question"><CircleQuestionMark /></span>
-  <span id="advisor-icon-building"><Building2 /></span>
-  <span id="advisor-icon-user-shield"><ShieldCheck /></span>
-  <span id="advisor-icon-people-group"><UsersRound /></span>
-  <span id="advisor-icon-rocket"><Rocket /></span>
-  <span id="advisor-icon-diagram-project"><Network /></span>
-  <span id="advisor-icon-building-columns"><Landmark /></span>
-  <span id="advisor-icon-circle-check"><CircleCheck /></span>
-  <span id="advisor-icon-triangle-exclamation"><TriangleAlert /></span>
-  <span id="advisor-icon-route"><Route /></span>
-  <span id="advisor-icon-chevron-down"><ChevronDown /></span>
-  <span id="advisor-icon-copy"><Copy /></span>
-  <span id="advisor-icon-check"><Check /></span>
-  <span id="advisor-icon-rotate-left"><RotateCcw /></span>
-  <span id="advisor-icon-arrow-left"><ArrowLeft /></span>
-  <span id="advisor-icon-arrow-right"><ArrowRight /></span>
-  <span id="advisor-icon-code-merge"><GitMerge /></span>
-  <span id="advisor-icon-arrows-split-up-and-left"><GitFork /></span>
-  <span id="advisor-icon-compass"><Compass /></span>
+  {spriteIcons.map(name => (
+    <span id={`advisor-icon-${name}`}><AdvisorIcon name={name} /></span>
+  ))}
 </div>
 
 <section class="advisor advisor--card" id="framework-advisor-root" aria-label="Frontend framework advisor">
   <header class="advisor__head">
     <div class="advisor__brand">
       <span class="advisor__spark" aria-hidden="true">
-        <WandSparkles class="ic" aria-hidden="true" />
+        <AdvisorIcon name="wand-magic-sparkles" />
       </span>
       <div>
         <span class="advisor__kicker">Interactive tool</span>
@@ -63,18 +39,41 @@ import './FrameworkAdvisorWidget.css';
     </div>
     <div class="advisor__head-restart" style="display:none"></div>
   </header>
+
   <div class="advisor__progress-mount"></div>
+
   <div class="advisor__stage-mount">
-    <div class="stage enter-fwd">
-      <div class="stage__inner">
-        <p style="color:var(--text-light);font-size:15px;padding:12px 0">Loading…</p>
+    {questions.map((q, i) => (
+      <div class:list={["stage", { "enter-fwd": i === 0 }]} data-panel="q" data-step={i} hidden={i !== 0}>
+        <div class="stage__inner"><QuestionStep q={q} index={i} /></div>
       </div>
+    ))}
+
+    {fwKeys.map(key => (
+      <div class="stage" data-panel="result" data-rec={key} hidden>
+        <div class="stage__inner"><ResultCard fwKey={key} /></div>
+      </div>
+    ))}
+
+    <div class="stage" data-panel="comparison" hidden>
+      <div class="stage__inner"></div>
+    </div>
+
+    <div class="stage" data-panel="oos" hidden>
+      <div class="stage__inner"><OutOfScope /></div>
     </div>
   </div>
+
   <div class="advisor__nav-mount"></div>
+
+  <!-- Parts bin — comparison column bodies cloned by the script -->
+  <div class="advisor__parts" hidden>
+    {fwKeys.map(key => <FrameworkColumn fwKey={key} />)}
+  </div>
 </section>
 
-<!-- Questionnaire content + framework facts, injected as a JSON island and read by the widget script -->
+<!-- Questionnaire content + framework facts, read by the widget script for the
+     recommendation algorithm and the few runtime-built fragments -->
 <script is:inline type="application/json" id="advisor-data" set:html={JSON.stringify(advisorData)} />
 
 <script>

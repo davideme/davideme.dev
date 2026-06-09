@@ -1,0 +1,115 @@
+---
+// One question step, rendered statically from the YAML. Covers all four kinds
+// (options / scale / cards / picker). Selection highlight, roving tabindex and the
+// backend free-text value are applied at runtime by the widget script — this markup
+// is the inert, declarative skeleton.
+import AdvisorIcon from './AdvisorIcon.astro';
+
+interface Props {
+  q: any;
+  index: number;
+}
+
+const { q } = Astro.props;
+const cols = q.columns || 1;
+const noneVal = q.noneValue || 'none';
+---
+
+<div class="qstep" data-question={q.id}>
+  <div class="qstep__head">
+    <span class="eyebrow">{q.eyebrow}</span>
+    <h3 class="qstep__title">{q.title}</h3>
+    <p class="qstep__sub">{q.sub}</p>
+  </div>
+
+  {q.kind === 'options' && (
+    <div class={`optgrid optgrid--c${cols}`} role="radiogroup" aria-label={q.title}>
+      {q.options.map((opt, i) => (
+        <button
+          type="button"
+          role="radio"
+          aria-checked="false"
+          tabindex={i === 0 ? '0' : '-1'}
+          class:list={["opt", "opt--row", { "opt--escape": opt.escape }]}
+          data-select={opt.v}
+        >
+          {opt.icon && <span class="opt__chip"><AdvisorIcon name={opt.icon} /></span>}
+          <span class="opt__text">
+            <span class="opt__label">{opt.label}</span>
+            {opt.desc && <span class="opt__desc">{opt.desc}</span>}
+          </span>
+          <span class="opt__radio" aria-hidden="true"><AdvisorIcon name="check" /></span>
+        </button>
+      ))}
+    </div>
+  )}
+
+  {q.kind === 'scale' && (
+    <div class="scale" role="radiogroup">
+      <div class="scale__track" aria-hidden="true"></div>
+      {q.options.map((opt, i) => (
+        <button
+          type="button"
+          role="radio"
+          aria-checked="false"
+          tabindex={i === 0 ? '0' : '-1'}
+          data-select={opt.v}
+          class="scale__stop"
+        >
+          <span class="scale__dot" aria-hidden="true"></span>
+          <span class="scale__label">{opt.label}</span>
+          <span class="scale__desc">{opt.desc}</span>
+        </button>
+      ))}
+    </div>
+  )}
+
+  {q.kind === 'cards' && (
+    <div class="pgrid" role="radiogroup" aria-label={q.title}>
+      {q.options.map((opt, i) => (
+        <button
+          type="button"
+          role="radio"
+          aria-checked="false"
+          tabindex={i === 0 ? '0' : '-1'}
+          class="pcard"
+          data-select={opt.v}
+        >
+          {opt.tag && <span class="pcard__tag">{opt.tag}</span>}
+          <span class="pcard__label">{opt.label}</span>
+          {opt.lede && <span class="pcard__lede">{opt.lede}</span>}
+          <span class="pcard__desc">{opt.desc}</span>
+          <span class="pcard__check" aria-hidden="true"><AdvisorIcon name="check" /></span>
+        </button>
+      ))}
+    </div>
+  )}
+
+  {q.kind === 'picker' && (
+    <div class="picker">
+      {q.groups.map(g => (
+        <div class="picker__group">
+          <span class="picker__glabel">{g.label}</span>
+          <div class="picker__chips" role="radiogroup" aria-label={g.label}>
+            {g.options.map(opt => (
+              <button type="button" role="radio" aria-checked="false" data-select={opt.v} class="chip">{opt.label}</button>
+            ))}
+          </div>
+        </div>
+      ))}
+      <button type="button" data-select={noneVal} class="picker__none">{q.noneLabel || 'No preference yet'}</button>
+    </div>
+  )}
+
+  {q.id === 'backend' && (
+    <div class="freetext" data-freetext hidden>
+      <input
+        type="text"
+        id="fa-freetext"
+        value=""
+        placeholder="Tell us what you use (optional) — won't block your result"
+        aria-label="Describe your backend stack"
+      />
+    </div>
+  )}
+</div>

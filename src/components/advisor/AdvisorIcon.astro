@@ -1,0 +1,61 @@
+---
+// Single source of truth mapping the YAML icon names to @lucide/astro components.
+// Used by every static (build-time) part of the widget, and to render the hidden
+// sprite the runtime script reads for the few icons it injects dynamically.
+import {
+  WandSparkles, Layers, Smartphone, TrendingUp, ShoppingCart, SquareArrowOutUpRight,
+  Coffee, Zap, Hash, Braces, Terminal, Package, Ellipsis,
+  Users, GitBranch, User, CircleQuestionMark, Building2, ShieldCheck, UsersRound,
+  Rocket, Network, Landmark, CircleCheck, TriangleAlert, Route,
+  ChevronDown, Copy, Check, RotateCcw, ArrowLeft, ArrowRight,
+  GitMerge, GitFork, Compass,
+} from '@lucide/astro';
+
+const MAP = {
+  'wand-magic-sparkles': WandSparkles,
+  'layer-group': Layers,
+  'mobile-screen': Smartphone,
+  'chart-line': TrendingUp,
+  'cart-shopping': ShoppingCart,
+  'arrow-up-right-from-square': SquareArrowOutUpRight,
+  'mug-hot': Coffee,
+  'bolt': Zap,
+  'hashtag': Hash,
+  'python': Braces,
+  'golang': Terminal,
+  'node-js': Package,
+  'ellipsis': Ellipsis,
+  'users': Users,
+  'code-branch': GitBranch,
+  'user': User,
+  'circle-question': CircleQuestionMark,
+  'building': Building2,
+  'user-shield': ShieldCheck,
+  'people-group': UsersRound,
+  'rocket': Rocket,
+  'diagram-project': Network,
+  'building-columns': Landmark,
+  'circle-check': CircleCheck,
+  'triangle-exclamation': TriangleAlert,
+  'route': Route,
+  'chevron-down': ChevronDown,
+  'copy': Copy,
+  'check': Check,
+  'rotate-left': RotateCcw,
+  'arrow-left': ArrowLeft,
+  'arrow-right': ArrowRight,
+  'code-merge': GitMerge,
+  'arrows-split-up-and-left': GitFork,
+  'compass': Compass,
+};
+
+interface Props {
+  name: string;
+  class?: string;
+}
+
+const { name, class: cls } = Astro.props;
+const Cmp = MAP[name] ?? Ellipsis;
+---
+
+<Cmp class={cls ? `ic ${cls}` : 'ic'} aria-hidden="true" />
