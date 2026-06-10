@@ -1,0 +1,446 @@
+# Framework Advisor — questionnaire content
+# Edit this file to update questions, framework facts, and copy.
+# The recommendation algorithm lives in FrameworkAdvisorWidget.astro.
+
+# ──────────────────────────────────────────────────────────────
+# FRAMEWORKS
+# Hard-coded facts from the post (Stack Overflow Survey 2025 + State of JS 2025).
+# ──────────────────────────────────────────────────────────────
+frameworks:
+  react:
+    name: React
+    brand: "#087EA4"
+    usage: 30
+    usageNote: "30% — the largest talent pool of any frontend framework."
+    backing: Backed by Meta
+    backingNote: Run in Meta's own products at scale.
+    ecosystem: First-class official SDKs for auth, billing, and UI.
+    capability: Bring-your-own ecosystem
+    reason: >-
+      The safest default: the deepest talent pool, the most official SDKs,
+      and the strongest AI-tooling support.
+    bullets:
+      - text: Largest hiring pool — easiest team to staff and grow.
+        anchor: "#maturity"
+      - text: "Official SDKs from Clerk, Stripe, Sentry; shadcn/ui & Radix were built for it."
+        anchor: "#ecosystem"
+      - text: "Best-supported target for Claude Code, Cursor & Copilot today."
+        anchor: "#agentic-development"
+
+  vue:
+    name: Vue
+    brand: "#42B883"
+    usage: 19
+    usageNote: "19% — steady adoption with the gentlest learning curve."
+    backing: Led by Evan You
+    backingNote: Independent, funded via VoidZero / Cloudflare tooling.
+    ecosystem: "Official SDKs for the major tools; shadcn-vue is growing."
+    capability: Conventions, not mandates
+    reason: >-
+      The fastest path to productive for a small team: official answers for
+      routing and state, without the ceremony.
+    bullets:
+      - text: Vue Router + Pinia are the standard stack — decided, not forced.
+        anchor: "#capability-philosophy"
+      - text: Approachable for backend devs picking up frontend.
+        anchor: "#how-to-decide"
+      - text: Pairs naturally with Python / Go API backends.
+        anchor: "#backend-frontend-synergy"
+
+  angular:
+    name: Angular
+    brand: "#DD0031"
+    usage: 17
+    usageNote: "17% — entrenched in enterprise, built for the long haul."
+    backing: Backed by Google
+    backingNote: Run in Google's own products at scale.
+    ecosystem: Official SDKs plus first-party Angular Material.
+    capability: Full batteries included
+    reason: >-
+      Everything decided out of the box — the strongest fit for large,
+      JVM/.NET enterprise teams optimising for long-term maintainability.
+    bullets:
+      - text: "First-party answer for routing, forms, HTTP, DI & testing."
+        anchor: "#capability-philosophy"
+      - text: "Familiar structure for Java/Spring & C#/.NET engineers."
+        anchor: "#backend-frontend-synergy"
+      - text: Built for long-term maintainability on big teams.
+        anchor: "#maturity"
+
+  svelte:
+    name: Svelte
+    brand: "#FF3E00"
+    usage: 10
+    usageNote: "10% — beloved by builders, but a smaller hiring pool."
+    backing: Rich Harris, employed by Vercel
+    backingNote: A full-time principal contributor, not a large company.
+    ecosystem: "Official Sentry SDK; community adapters for auth & billing."
+    capability: Lean by default
+    reason: >-
+      Lean and fast to write, but lighter ecosystem coverage makes it a
+      watch-list pick rather than the lowest-risk default.
+    bullets:
+      - text: "Minimal boilerplate — a joy for small, senior teams."
+        anchor: "#how-to-decide"
+      - text: "Official Sentry support; auth & billing lean on community adapters."
+        anchor: "#ecosystem"
+      - text: Smaller hiring pool than React, Vue or Angular.
+        anchor: "#maturity"
+
+  solid:
+    name: Solid
+    brand: "#2C4F7C"
+    usage: 3.8
+    usageNote: "3.8% — enthusiast favourite, limited hiring pool."
+    backing: Community-driven
+    backingNote: "No corporate backer, small core team."
+    ecosystem: Works at the JS-SDK layer; you wrap integrations yourself.
+    capability: Minimal, build-your-own
+    reason: >-
+      Excellent performance and ergonomics, but almost no framework-specific
+      SDKs and no corporate backing — highest risk for a new SaaS.
+    bullets:
+      - text: Fine-grained reactivity with React-like ergonomics.
+        anchor: "#how-to-decide"
+      - text: Almost no dedicated SDKs — you wrap vanilla JS yourself.
+        anchor: "#ecosystem"
+      - text: No corporate backer and the smallest hiring pool.
+        anchor: "#maturity"
+
+# ──────────────────────────────────────────────────────────────
+# META FRAMEWORKS  (base → adoption bar source)
+# ──────────────────────────────────────────────────────────────
+meta:
+  next:       { name: Next.js,    base: react   }
+  nuxt:       { name: Nuxt,       base: vue     }
+  sveltekit:  { name: SvelteKit,  base: svelte  }
+  analog:     { name: Analog,     base: angular }
+  solidstart: { name: SolidStart, base: solid   }
+
+# ──────────────────────────────────────────────────────────────
+# QUESTIONS  (9 total; Q1 is the gating question)
+# ──────────────────────────────────────────────────────────────
+questions:
+  - id: appType
+    step: 1
+    eyebrow: What you're building
+    title: What are you building?
+    sub: >-
+      This sets the scope. The guide covers web products with a separate
+      backend API.
+    kind: options
+    options:
+      - v: saas
+        icon: layer-group
+        label: "SaaS / web app"
+        desc: A product behind a login, talking to your own API.
+      - v: pwa
+        icon: mobile-screen
+        label: Progressive web app
+        desc: "Installable, offline-capable, served from the web."
+      - v: dashboard
+        icon: chart-line
+        label: Dynamic dashboard
+        desc: "Data-dense, interactive, frequently updating views."
+      - v: ecommerce
+        icon: cart-shopping
+        label: E-commerce
+        desc: Storefront, cart and checkout with a backend.
+      - v: mobile-desktop
+        icon: arrow-up-right-from-square
+        label: Mobile or desktop app
+        desc: Native iOS/Android or a desktop application.
+        escape: true
+
+  - id: backend
+    step: 2
+    eyebrow: Backend stack
+    title: What is your backend stack?
+    sub: >-
+      The highest-signal question — your API language shapes the natural
+      frontend pairing.
+    kind: options
+    columns: 2
+    options:
+      - v: java
+        icon: mug-hot
+        label: Java / Spring
+      - v: kotlin
+        icon: bolt
+        label: Kotlin / Spring
+      - v: csharp
+        icon: hashtag
+        label: "C# / .NET"
+      - v: python
+        icon: python
+        label: Python (Django / FastAPI)
+      - v: go
+        icon: golang
+        label: Go
+      - v: node
+        icon: node-js
+        label: Node.js / TypeScript
+      - v: other
+        icon: ellipsis
+        label: Other / No decision yet
+        freetext: true
+        freeText: Tell us what you use (optional)
+
+  - id: hiring
+    step: 3
+    eyebrow: Staffing
+    title: How will you staff the frontend?
+    sub: Who writes the UI changes the calculus as much as the tech does.
+    kind: options
+    options:
+      - v: dedicated
+        icon: users
+        label: Dedicated frontend team
+        desc: Specialists who own the frontend.
+      - v: backend-contrib
+        icon: code-branch
+        label: Backend devs contributing
+        desc: Full-stack engineers crossing into the frontend.
+      - v: solo
+        icon: user
+        label: Solo / indie developer
+        desc: You own every decision — lean tooling saves setup time.
+      - v: unsure
+        icon: circle-question
+        label: Not sure yet
+        desc: Still figuring out the team shape.
+
+  - id: ai
+    step: 4
+    eyebrow: AI tooling
+    title: How much do you rely on AI coding assistants?
+    sub: "Claude Code, Cursor, Copilot. Training-data depth favours the most-used frameworks."
+    kind: scale
+    options:
+      - v: rarely
+        label: "Rarely / never"
+        desc: Mostly hand-written code.
+      - v: regular
+        label: Regularly
+        desc: A daily-driver part of the workflow.
+      - v: central
+        label: "It's central to my workflow"
+        desc: Agentic development is how I build.
+
+  - id: capability
+    step: 5
+    eyebrow: Capability philosophy
+    title: How much should the framework include out of the box?
+    sub: "Three philosophies, three sets of consequences. Pick the trade-off you want to live with."
+    kind: cards
+    options:
+      - v: library
+        label: UI library only
+        lede: "I'll pick my own tools."
+        desc: >-
+          Start with just the UI layer. You choose the state library, router,
+          and data-fetching approach — each a separate decision as you grow.
+      - v: conventions
+        label: "Conventions, not mandates"
+        lede: The main choices already made.
+        desc: >-
+          Standard answers for routing and state come with the framework.
+          The decisions are made, but not forced — you can swap parts if needed.
+      - v: everything
+        label: Everything decided
+        lede: "I want to start building, not configuring."
+        desc: >-
+          A first-party answer for every architectural question. No tooling
+          debates, but even small prototypes follow the full structure.
+
+  - id: ecosystem
+    step: 6
+    eyebrow: "Ecosystem & SDKs"
+    title: "When you integrate third-party tools, what matters most?"
+    sub: "Auth, billing, error tracking, UI components — who maintains the integration?"
+    kind: cards
+    options:
+      - v: official
+        label: Official SDKs only
+        lede: "Vendor-maintained, framework-specific."
+        desc: >-
+          Auth, billing, and UI component vendors publish dedicated packages
+          for the most-used frameworks. Less glue code, less maintenance.
+      - v: community
+        label: Community adapters are fine
+        lede: "I'll vet them, accept some risk."
+        desc: >-
+          Official support for error tracking; community-maintained wrappers
+          for auth and billing. Generally solid, but you own the upgrade path.
+      - v: build
+        label: "I'll build what I need"
+        lede: "Wrappers are thin — I'd rather own it."
+        desc: >-
+          Work at the vanilla JS-SDK layer and write your own thin wrappers.
+          Full control, but every integration is a task you own.
+
+  - id: backing
+    step: 7
+    eyebrow: Institutional backing
+    title: How important is the team behind the framework?
+    sub: "Maturity and longevity: who is responsible if something breaks in three years?"
+    kind: options
+    options:
+      - v: very
+        icon: building
+        label: Large company
+        desc: I want a company like Google or Meta behind it.
+      - v: quite
+        icon: user-shield
+        label: Full-time contributor
+        desc: A dedicated full-time principal contributor is enough.
+      - v: not
+        icon: people-group
+        label: Community
+        desc: I trust a well-maintained open-source community.
+
+  - id: teamsize
+    step: 8
+    eyebrow: "Team & architecture"
+    title: How do you prefer to make architecture decisions?
+    sub: The real choice is when you want those decisions made — incrementally as you grow, or all at once upfront.
+    kind: options
+    options:
+      - v: small
+        icon: rocket
+        label: "Incrementally — add pieces as I need them"
+        desc: "Start lean, reach for a new library when the need arises."
+      - v: mid
+        icon: diagram-project
+        label: "Standard defaults — main choices already made for me"
+        desc: "Common answers for routing and state come bundled; I can still swap parts."
+      - v: enterprise
+        icon: building-columns
+        label: "Everything upfront — no tooling debates"
+        desc: "Even prototypes follow the full structure. The trade-off is more initial setup for zero ambiguity later."
+
+  - id: pick
+    step: 9
+    optional: true
+    eyebrow: "Optional · last step"
+    title: Do you already have a framework in mind?
+    sub: "We'll compare your pick against our recommendation. Skip if you're open."
+    kind: picker
+    groups:
+      - label: Frontend frameworks
+        options:
+          - v: react
+            label: React
+          - v: vue
+            label: Vue
+          - v: angular
+            label: Angular
+          - v: svelte
+            label: Svelte
+          - v: solid
+            label: Solid
+      - label: Meta frameworks
+        options:
+          - v: next
+            label: Next.js
+          - v: nuxt
+            label: Nuxt
+          - v: sveltekit
+            label: SvelteKit
+          - v: analog
+            label: Analog
+          - v: solidstart
+            label: SolidStart
+    noneLabel: No preference yet
+    noneValue: none
+
+# ──────────────────────────────────────────────────────────────
+# OUT-OF-SCOPE CARD  (shown when Q1 = mobile-desktop)
+# ──────────────────────────────────────────────────────────────
+outOfScope:
+  title: This guide doesn't cover your case
+  body: >-
+    This guide covers web-based SaaS and e-commerce products with a separate
+    backend API.
+  paths:
+    - label: For mobile
+      text: look at React Native, Flutter or Expo.
+    - label: For desktop
+      text: look at Tauri or Electron.
+
+# ──────────────────────────────────────────────────────────────
+# DEMO SHORTCUTS  (preset answer sets for dev testing)
+# ──────────────────────────────────────────────────────────────
+demos:
+  react:
+    appType: saas
+    backend: node
+    hiring: dedicated
+    ai: central
+    capability: library
+    ecosystem: official
+    backing: very
+    teamsize: mid
+    pick: none
+  angular:
+    appType: saas
+    backend: java
+    hiring: backend-contrib
+    ai: regular
+    capability: everything
+    ecosystem: official
+    backing: very
+    teamsize: enterprise
+    pick: none
+  vue:
+    appType: saas
+    backend: python
+    hiring: solo
+    ai: regular
+    capability: conventions
+    ecosystem: official
+    backing: quite
+    teamsize: small
+    pick: none
+  comparison:
+    appType: saas
+    backend: node
+    hiring: dedicated
+    ai: central
+    capability: library
+    ecosystem: official
+    backing: very
+    teamsize: mid
+    pick: vue
+  partial:
+    appType: saas
+    backend: node
+    hiring: dedicated
+    ai: central
+    capability: library
+    ecosystem: official
+    backing: very
+    teamsize: mid
+    pick: next
+  svelte:
+    appType: saas
+    backend: node
+    hiring: solo
+    ai: rarely
+    capability: library
+    ecosystem: community
+    backing: quite
+    teamsize: small
+    pick: none
+  solid:
+    appType: saas
+    backend: node
+    hiring: solo
+    ai: rarely
+    capability: library
+    ecosystem: build
+    backing: not
+    teamsize: small
+    pick: none
+  outofscope:
+    appType: mobile-desktop

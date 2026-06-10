@@ -17,12 +17,15 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@lucide/astro": "^1.17.0",
     "astro": "^6.4.4",
     "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
+    "@astrojs/mdx": "^6.0.2",
     "@astrojs/sitemap": "^3.7.3",
+    "@modyfi/vite-plugin-yaml": "^1.1.1",
     "typescript": "^6.0.3"
   }
 }

@@ -1,0 +1,32 @@
+---
+// Reason bullets for a framework, each linking to the relevant article section.
+import advisorData from '../../data/framework-advisor.yaml';
+import AdvisorIcon from './AdvisorIcon.astro';
+
+interface Props {
+  fwKey: string;
+  limit?: number;
+}
+
+const { fwKey, limit } = Astro.props;
+const all = advisorData.frameworks[fwKey].bullets;
+const bullets = limit ? all.slice(0, limit) : all;
+---
+
+<ul class="rbullets">
+  {bullets.map(b => (
+    <li>
+      <AdvisorIcon name="circle-check" class="rb-ic" />
+      <a href={b.anchor}>{b.text}</a>
+    </li>
+  ))}
+</ul>
+
+<style>
+  .rbullets { list-style: none; display: flex; flex-direction: column; gap: 10px; padding: 0; margin: 0; }
+  .rbullets li { display: flex; gap: 11px; align-items: flex-start; font-size: var(--fs-sm); color: var(--fg-2); line-height: 1.5; }
+  /* .ic SVG rendered by AdvisorIcon also carries this component's cid as a child-component root */
+  .rbullets li .ic { color: var(--accent); font-size: 14px; margin-top: 2px; flex: none; }
+  .rbullets a { color: var(--fg-2); border-bottom: 1px solid var(--border-1); text-decoration: none; transition: color .18s, border-color .18s; }
+  .rbullets a:hover { color: var(--accent); border-color: var(--accent); }
+</style>

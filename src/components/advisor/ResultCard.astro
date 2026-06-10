@@ -1,0 +1,71 @@
+---
+// Single-framework recommendation card. Everything here is static (from the YAML);
+// the runtime script reveals the matching card and injects the two computed pieces
+// into the caveats / why mounts.
+import advisorData from '../../data/framework-advisor.yaml';
+import AdvisorIcon from './AdvisorIcon.astro';
+import FrameworkBadge from './FrameworkBadge.astro';
+import Bullets from './Bullets.astro';
+import AdoptionBar from './AdoptionBar.astro';
+
+interface Props {
+  fwKey: string;
+}
+
+const { fwKey } = Astro.props;
+const fw = advisorData.frameworks[fwKey];
+---
+
+<div class="result" aria-live="polite">
+  <div class="result__top">
+    <span class="eyebrow">Our recommendation</span>
+    <div><FrameworkBadge fwKey={fwKey} size="lg" /></div>
+    <p class="result__reason">{fw.reason}</p>
+  </div>
+
+  <Bullets fwKey={fwKey} />
+
+  <div class="rmeta">
+    <div class="rmeta__cell"><span class="rmeta__k">Capability</span><span class="rmeta__v">{fw.capability}</span></div>
+    <div class="rmeta__cell"><span class="rmeta__k">Ecosystem</span><span class="rmeta__v">{fw.ecosystem}</span></div>
+    <div class="rmeta__cell"><span class="rmeta__k">Backing</span><span class="rmeta__v">{fw.backing}</span></div>
+  </div>
+
+  <AdoptionBar fwKey={fwKey} />
+
+  <div data-caveats-mount></div>
+  <div data-why-mount></div>
+
+  <div class="result__actions">
+    <button type="button" class="btn btn-secondary" data-action="copy" data-rec={fwKey}>
+      <AdvisorIcon name="copy" /> Copy result
+    </button>
+    <button type="button" class="btn btn-primary" data-action="restart">
+      <AdvisorIcon name="rotate-left" /> Start over
+    </button>
+  </div>
+</div>
+
+<style>
+  .result { display: flex; flex-direction: column; gap: 20px; }
+  .result__top { display: flex; flex-direction: column; gap: 10px; }
+  .result__reason {
+    font-size: var(--fs-body-lg); color: var(--fg-1); line-height: 1.55;
+    font-weight: 500; letter-spacing: -0.01em; margin: 0;
+  }
+
+  /* ── Meta row ─────────────────────────────────────────────────────── */
+  .rmeta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  @media (max-width: 560px) { .rmeta { grid-template-columns: 1fr; } }
+  .rmeta__cell {
+    background: var(--bg-2); border: 1px solid var(--border-1);
+    border-radius: var(--radius-sm); padding: 13px 14px;
+    display: flex; flex-direction: column; gap: 5px;
+  }
+  .rmeta__k { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); }
+  .rmeta__v { font-size: var(--fs-2xs); color: var(--fg-1); line-height: 1.4; font-weight: 500; }
+
+  /* ── Actions ──────────────────────────────────────────────────────── */
+  .result__actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .result__actions button { font-family: inherit; }
+</style>

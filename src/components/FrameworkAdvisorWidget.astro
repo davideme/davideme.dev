@@ -1,0 +1,308 @@
+---
+import advisorData from '../data/framework-advisor.yaml';
+import AdvisorIcon from './advisor/AdvisorIcon.astro';
+import QuestionStep from './advisor/QuestionStep.astro';
+import ResultCard from './advisor/ResultCard.astro';
+import FrameworkColumn from './advisor/FrameworkColumn.astro';
+import OutOfScope from './advisor/OutOfScope.astro';
+
+const { questions } = advisorData;
+const fwKeys = ['react', 'vue', 'angular', 'svelte', 'solid'];
+
+// Icons the runtime script injects dynamically (nav, caveats, why, verdict, copy
+// feedback, header restart). Static parts render their icons via <AdvisorIcon> directly.
+const spriteIcons = [
+  'arrow-left', 'arrow-right', 'triangle-exclamation', 'route', 'chevron-down',
+  'copy', 'check', 'rotate-left', 'circle-check', 'code-merge',
+  'arrows-split-up-and-left', 'ellipsis',
+];
+---
+
+<!-- Hidden sprite — the few icons the script injects at runtime, rendered at build time -->
+<div id="advisor-icon-sprites" style="display:none" aria-hidden="true">
+  {spriteIcons.map(name => (
+    <span id={`advisor-icon-${name}`}><AdvisorIcon name={name} /></span>
+  ))}
+</div>
+
+<section class="advisor advisor--card" id="framework-advisor-root" aria-label="Frontend framework advisor">
+  <header class="advisor__head">
+    <div class="advisor__brand">
+      <span class="advisor__spark" aria-hidden="true">
+        <AdvisorIcon name="wand-magic-sparkles" />
+      </span>
+      <div>
+        <span class="advisor__kicker">Interactive tool</span>
+        <h2 class="advisor__title">Which framework fits your SaaS?</h2>
+      </div>
+    </div>
+    <div class="advisor__head-restart" style="display:none"></div>
+  </header>
+
+  <div class="advisor__progress-mount"></div>
+
+  <div class="advisor__stage-mount">
+    {questions.map((q, i) => (
+      <div class:list={["stage", { "enter-fwd": i === 0 }]} data-panel="q" data-step={i} hidden={i !== 0}>
+        <div class="stage__inner"><QuestionStep q={q} index={i} /></div>
+      </div>
+    ))}
+
+    {fwKeys.map(key => (
+      <div class="stage" data-panel="result" data-rec={key} hidden>
+        <div class="stage__inner"><ResultCard fwKey={key} /></div>
+      </div>
+    ))}
+
+    <div class="stage" data-panel="comparison" hidden>
+      <div class="stage__inner"></div>
+    </div>
+
+    <div class="stage" data-panel="oos" hidden>
+      <div class="stage__inner"><OutOfScope /></div>
+    </div>
+  </div>
+
+  <div class="advisor__nav-mount"></div>
+
+  <!-- Parts bin — comparison column bodies cloned by the script -->
+  <div class="advisor__parts" hidden>
+    {fwKeys.map(key => <FrameworkColumn fwKey={key} />)}
+  </div>
+</section>
+
+<!-- Questionnaire content + framework facts, read by the widget script for the
+     recommendation algorithm and the few runtime-built fragments -->
+<script is:inline type="application/json" id="advisor-data" set:html={JSON.stringify(advisorData)} />
+
+<script>
+  import './FrameworkAdvisorWidget.js';
+</script>
+
+<style>
+  /* ── Token bridge ─────────────────────────────────────────────────── */
+  /* Maps blog CSS vars to DS names used throughout the widget */
+  .advisor {
+    --fg-1: var(--primary-color);
+    --fg-2: var(--secondary-color);
+    --fg-3: var(--text-light);
+    --bg-1: var(--bg-primary);
+    --bg-2: var(--bg-light);
+    --accent: var(--accent-color);
+    --border-1: var(--border-color);
+    --radius-lg: var(--radius);
+    --radius-sm: 8px;
+    --accent-tint: color-mix(in srgb, var(--accent-color) 9%, transparent);
+    --fs-3xs: 11px;
+    --fs-2xs: 12px;
+    --fs-sm: 15px;
+    --fs-body-lg: 17px;
+    --fs-h4: 17px;
+  }
+
+  /* ── Shared utilities ─────────────────────────────────────────────── */
+  /* .ic covers both AdvisorIcon SVGs and JS-built SVGs; constrained to .advisor */
+  .advisor :global(.ic) {
+    width: 1em; height: 1em; display: inline-block; flex: none;
+    vertical-align: -0.125em;
+  }
+  /* .eyebrow is used in QuestionStep, ResultCard and OutOfScope */
+  .advisor :global(.eyebrow) {
+    font-size: var(--fs-3xs); font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--accent);
+  }
+
+  /* ── Container ────────────────────────────────────────────────────── */
+  .advisor {
+    font-family: var(--font);
+    color: var(--fg-1);
+    max-width: 720px;
+    margin: 2.5rem auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    --pad: 32px;
+  }
+  .advisor--card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: var(--pad);
+  }
+  @media (max-width: 520px) {
+    .advisor { --pad: 18px; gap: 16px; }
+  }
+
+  /* ── Header ───────────────────────────────────────────────────────── */
+  .advisor__head {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  .advisor__brand { display: flex; align-items: center; gap: 14px; }
+  .advisor__spark {
+    flex: none; width: 44px; height: 44px; border-radius: 12px;
+    background: var(--accent-tint); color: var(--accent);
+    display: flex; align-items: center; justify-content: center; font-size: 19px;
+  }
+  .advisor__kicker {
+    display: block; font-size: var(--fs-3xs); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent);
+    margin-bottom: 3px;
+  }
+  .advisor__title {
+    font-size: 21px; font-weight: 700; letter-spacing: -0.02em;
+    line-height: 1.15; color: var(--fg-1); margin: 0;
+  }
+  /* Restart button is injected by JS into .advisor__head-restart */
+  :global(.advisor__restart-btn) {
+    flex: none; width: 36px; height: 36px; border-radius: 10px; cursor: pointer;
+    border: 1px solid var(--border-1); background: var(--card-bg); color: var(--fg-2);
+    display: flex; align-items: center; justify-content: center; font-size: 14px;
+    transition: all .2s; font-family: inherit;
+  }
+  :global(.advisor__restart-btn:hover) { color: var(--accent); border-color: var(--accent); }
+
+  /* ── Stage & transitions ──────────────────────────────────────────── */
+  .stage { position: relative; }
+  .stage__inner { will-change: transform; opacity: 1; }
+  /* exit/enter classes are JS-applied, but the elements have the cid from build time */
+  .stage.exit-fwd  .stage__inner { transform: translateX(-14px); transition: transform .2s ease; }
+  .stage.exit-back .stage__inner { transform: translateX(14px);  transition: transform .2s ease; }
+  .stage.enter-fwd  .stage__inner { animation: stageEnterFwd  .3s cubic-bezier(.2,.7,.2,1); }
+  .stage.enter-back .stage__inner { animation: stageEnterBack .3s cubic-bezier(.2,.7,.2,1); }
+  @keyframes stageEnterFwd  { from { transform: translateX(20px);  } to { transform: none; } }
+  @keyframes stageEnterBack { from { transform: translateX(-20px); } to { transform: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .stage__inner,
+    .stage.enter-fwd  .stage__inner,
+    .stage.enter-back .stage__inner { animation: none !important; transition: none !important; }
+  }
+
+  /* ── Progress (JS-built via buildProgress) ────────────────────────── */
+  :global(.progress) { display: flex; flex-direction: column; gap: 8px; }
+  :global(.progress__row) { display: flex; justify-content: space-between; align-items: baseline; }
+  :global(.progress__label) {
+    font-size: var(--fs-2xs); font-weight: 500; color: var(--fg-2); letter-spacing: -0.01em;
+  }
+  :global(.progress__opt) { color: var(--fg-3); font-weight: 400; }
+  :global(.progress__pct) {
+    font-size: var(--fs-2xs); font-weight: 600; color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  :global(.progress__bar) { display: flex; gap: 4px; }
+  :global(.progress__seg) {
+    flex: 1; height: 4px; border-radius: 980px; background: var(--border-1);
+    transition: background .35s ease;
+  }
+  :global(.progress__seg.is-done) { background: var(--accent); }
+  :global(.progress__seg.is-now)  { background: var(--accent); box-shadow: 0 0 0 3px var(--accent-tint); }
+
+  /* ── Nav (JS-built via buildNav) ─────────────────────────────────── */
+  :global(.advisor__nav) { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  :global(.advisor__hint) { font-size: var(--fs-2xs); color: var(--fg-3); text-align: center; flex: 1; }
+  :global(.navbtn) {
+    display: inline-flex; align-items: center; gap: 8px; font-family: inherit;
+    font-size: var(--fs-sm); font-weight: 500; border-radius: 980px; padding: 10px 20px;
+    cursor: pointer; transition: all .18s; letter-spacing: -0.01em; border: 1px solid transparent;
+  }
+  :global(.navbtn--ghost) { background: transparent; color: var(--fg-2); border-color: var(--border-1); }
+  :global(.navbtn--ghost:hover:not(:disabled)) { color: var(--fg-1); border-color: var(--fg-3); }
+  :global(.navbtn--solid) { background: var(--accent); color: #fff; }
+  :global(.navbtn--solid:hover:not(:disabled)) { background: var(--accent-hover); }
+  :global(.navbtn:disabled) { opacity: .4; cursor: not-allowed; }
+  :global(.navbtn--spacer) { width: 92px; visibility: hidden; }
+
+  /* ── Caveats (JS-built via buildCaveats) ─────────────────────────── */
+  :global(.caveats) { display: flex; flex-direction: column; gap: 8px; }
+  :global(.caveats p) {
+    display: flex; gap: 10px; align-items: flex-start; font-size: var(--fs-2xs); color: var(--fg-2);
+    line-height: 1.5;
+    background: color-mix(in srgb, #E8A33D 12%, var(--bg-1));
+    border: 1px solid color-mix(in srgb, #E8A33D 30%, transparent);
+    border-radius: var(--radius-sm); padding: 11px 13px; margin: 0;
+  }
+  :global(.caveats .ic) { color: #C9821B; margin-top: 2px; flex: none; }
+
+  /* ── Why trace (JS-built via buildWhy) ───────────────────────────── */
+  :global(.why) { border-top: 1px solid var(--border-1); padding-top: 16px; }
+  :global(.why__toggle) {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    font-family: inherit; font-size: var(--fs-sm); font-weight: 600; color: var(--fg-1);
+    background: transparent; border: none; cursor: pointer; padding: 0; letter-spacing: -0.01em;
+  }
+  :global(.why__toggle > .ic:first-child) { color: var(--accent); }
+  :global(.why__chev) { margin-left: auto; color: var(--fg-3); font-size: 12px; transition: transform .2s; }
+  :global(.why.is-open .why__chev) { transform: rotate(180deg); }
+  :global(.why__list) {
+    list-style: none; counter-reset: w; display: flex; flex-direction: column;
+    gap: 8px; margin-top: 14px; padding: 0;
+  }
+  :global(.why__list li) {
+    counter-increment: w; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px;
+    align-items: baseline; background: var(--bg-2); border: 1px solid var(--border-1);
+    border-radius: var(--radius-sm); padding: 11px 13px 11px 40px; position: relative;
+  }
+  :global(.why__list li::before) {
+    content: counter(w); position: absolute; left: 12px; top: 11px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--accent-tint); color: var(--accent); font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  :global(.why__q) { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); grid-column: 1; }
+  :global(.why__a) { font-size: var(--fs-2xs); font-weight: 600; color: var(--fg-1); grid-column: 2; }
+  :global(.why__e) { font-size: var(--fs-2xs); color: var(--fg-3); line-height: 1.45; grid-column: 1 / -1; }
+
+  /* ── Comparison outer layout (JS-built container & vs-divider) ────── */
+  :global(.cmp) { display: grid; grid-template-columns: 1fr auto 1fr; align-items: stretch; }
+  :global(.cmp--agree) { grid-template-columns: 1fr; }
+  :global(.cmp__vs) {
+    display: flex; align-items: center; justify-content: center; padding: 0 4px;
+    position: relative; z-index: 3;
+  }
+  :global(.cmp__vs span) {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--card-bg); border: 1px solid var(--border-1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: var(--fg-3);
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  @media (max-width: 560px) {
+    :global(.cmp) { grid-template-columns: 1fr; }
+    :global(.cmp__vs) { padding: 6px 0; }
+    :global(.cmp__vs span) { transform: rotate(90deg); }
+  }
+
+  /* ── Verdict (JS-built via composeComparison) ────────────────────── */
+  :global(.verdict) {
+    display: flex; gap: 14px; padding: 16px 18px; border-radius: var(--radius);
+    border: 1px solid var(--border-1); align-items: flex-start;
+  }
+  :global(.verdict--agreement)  { background: color-mix(in srgb, #1F8A5B 9%, var(--bg-1)); border-color: color-mix(in srgb, #1F8A5B 28%, transparent); }
+  :global(.verdict--partial)    { background: var(--accent-tint); border-color: color-mix(in srgb, var(--accent) 28%, transparent); }
+  :global(.verdict--divergence) { background: color-mix(in srgb, #E8A33D 10%, var(--bg-1)); border-color: color-mix(in srgb, #E8A33D 28%, transparent); }
+  :global(.verdict__icon) { flex: none; font-size: 20px; margin-top: 1px; }
+  :global(.verdict--agreement  .verdict__icon) { color: #1F8A5B; }
+  :global(.verdict--partial    .verdict__icon) { color: var(--accent); }
+  :global(.verdict--divergence .verdict__icon) { color: #C9821B; }
+  :global(.verdict__body) { display: flex; flex-direction: column; gap: 6px; }
+  :global(.verdict__headline) { font-size: var(--fs-sm); font-weight: 700; color: var(--fg-1); letter-spacing: -0.01em; line-height: 1.4; margin: 0; }
+  :global(.verdict__detail)   { font-size: var(--fs-2xs); color: var(--fg-2); line-height: 1.55; margin: 0; }
+  :global(.verdict__reasons) { list-style: none; display: flex; flex-direction: column; gap: 6px; margin-top: 4px; padding: 0; }
+  :global(.verdict__reasons li) { font-size: var(--fs-2xs); color: var(--fg-2); padding-left: 16px; position: relative; line-height: 1.45; }
+  :global(.verdict__reasons li::before) { content: "→"; position: absolute; left: 0; color: var(--accent); }
+  :global(.verdict__reasons a) { color: var(--fg-1); border-bottom: 1px solid var(--border-1); text-decoration: none; }
+  :global(.verdict__reasons a:hover) { color: var(--accent); border-color: var(--accent); }
+
+  /* ── Buttons ──────────────────────────────────────────────────────── */
+  /* Constrained to .advisor to avoid colliding with the site's global .btn */
+  .advisor :global(.btn) {
+    display: inline-flex; align-items: center; gap: 8px; font-family: inherit;
+    font-size: var(--fs-sm); font-weight: 500; border-radius: 980px;
+    padding: 10px 20px; cursor: pointer; transition: all .18s;
+    letter-spacing: -0.01em; border: 1px solid transparent; text-decoration: none;
+  }
+  .advisor :global(.btn-primary)        { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .advisor :global(.btn-primary:hover)  { background: var(--accent-hover); border-color: var(--accent-hover); }
+  .advisor :global(.btn-secondary)      { background: transparent; color: var(--accent); border-color: var(--accent); }
+  .advisor :global(.btn-secondary:hover){ background: var(--accent); color: #fff; }
+</style>

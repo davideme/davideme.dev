@@ -6,7 +6,7 @@ import { glob } from "astro/loaders";
 
 // 3. Define your collection(s)
 const articles = defineCollection({
-  loader: glob({ pattern: "**/*.md", base: "./src/data/articles" }),
+  loader: glob({ pattern: "**/*.{md,mdx}", base: "./src/data/articles" }),
   schema: z.object({
     title: z.string(),
     author: z.string(),
