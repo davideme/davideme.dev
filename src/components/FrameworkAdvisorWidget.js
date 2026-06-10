@@ -1,128 +1,23 @@
-// FrameworkAdvisorWidget — widget logic (extracted from the .astro component).
-// The questions, result cards, comparison columns and out-of-scope panel are all
-// pre-rendered as static Astro markup (hidden in the DOM). This script is the
-// orchestrator: it runs the recommendation algorithm, reveals the right panel,
-// syncs selection state, and builds only the genuinely dynamic fragments
-// (progress, nav, caveats, the "why" trace and the pick-vs-recommendation verdict).
+// FrameworkAdvisorWidget — widget orchestrator.
+// Pre-rendered Astro markup (questions, results, comparison columns, OOS panel)
+// is hidden in the DOM at build time. This script reveals the right panel,
+// syncs selection state, and fills the runtime-only dynamic fragments.
 //
 // `advisorData` is injected by the component as a JSON island (#advisor-data).
 
 import { recommend, verdict } from './advisor/advisor-engine.js';
+import {
+  initIcons, ic,
+  buildProgress, buildCaveats, buildWhy, buildNav, buildVerdictHTML,
+} from './advisor/advisor-builders.js';
 
 const advisorData = JSON.parse(
   document.getElementById('advisor-data')?.textContent || '{}'
 );
 
-/* ── Icons ───────────────────────────────────────────────── */
-// Cache of the few icons the script injects at runtime, read from the build-time
-// sprite. Static markup renders its icons via <AdvisorIcon> directly.
-const ICON_SVGS = {};
-
-function initIcons() {
-  const sprites = document.getElementById('advisor-icon-sprites');
-  if (!sprites) return;
-  sprites.querySelectorAll('[id^="advisor-icon-"]').forEach(el => {
-    const name = el.id.replace('advisor-icon-', '');
-    const svg = el.querySelector('svg');
-    if (svg) ICON_SVGS[name] = svg.innerHTML;
-  });
-}
-
-function ic(name, cls) {
-  const inner = ICON_SVGS[name] || ICON_SVGS['ellipsis'] || '';
-  return `<svg class="ic${cls ? ' ' + cls : ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`;
-}
-
-/* ── Data from YAML ─────────────────────────────────────── */
 const { frameworks, meta, questions, demos } = advisorData;
 const TOTAL = questions.length;
 const REDUCE = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-/* ── Dynamic fragment builders (the only HTML still built at runtime) ── */
-function buildProgress(index, mode) {
-  const current = mode === 'result' ? TOTAL : index + 1;
-  const q = questions[Math.min(index, TOTAL - 1)];
-  const optional = mode === 'q' && q.optional;
-  const pct = Math.round((current / TOTAL) * 100);
-  const label = mode === 'result' ? 'Complete' : `Step ${current} of ${TOTAL}`;
-  const segs = questions.map((_, i) => {
-    const done = i < current;
-    const now  = i === index && mode === 'q';
-    return `<span class="progress__seg${done ? ' is-done' : ''}${now ? ' is-now' : ''}"></span>`;
-  }).join('');
-  return `
-    <div class="progress">
-      <div class="progress__row">
-        <span class="progress__label">${label}${optional ? '<span class="progress__opt"> · optional</span>' : ''}</span>
-        <span class="progress__pct">${pct}%</span>
-      </div>
-      <div class="progress__bar" role="progressbar" aria-valuemin="0" aria-valuemax="${TOTAL}" aria-valuenow="${current}">
-        ${segs}
-      </div>
-    </div>`;
-}
-
-function buildCaveats(items) {
-  if (!items || !items.length) return '';
-  return `<div class="caveats" role="note">${items.map(c =>
-    `<p>${ic('triangle-exclamation')}<span>${c}</span></p>`).join('')}</div>`;
-}
-
-function buildWhy(trace, open) {
-  const items = trace.map(t =>
-    `<li><span class="why__q">${t.q}</span><span class="why__a">${t.a}</span><span class="why__e">${t.effect}</span></li>`
-  ).join('');
-  const list = open ? `<ol class="why__list">${items}</ol>` : '';
-  return `
-    <div class="why${open ? ' is-open' : ''}">
-      <button type="button" class="why__toggle" aria-expanded="${open}" data-action="why-toggle">
-        ${ic('route')} Why this recommendation?
-        ${ic('chevron-down', 'why__chev')}
-      </button>
-      ${list}
-    </div>`;
-}
-
-function buildNav(q) {
-  const canContinue = state.answers[q.id] !== undefined;
-  const hint = q.optional ? "Optional — skip if you're open" : 'Pick one to continue';
-  const spacer = `<span class="navbtn navbtn--spacer" aria-hidden="true"></span>`;
-  const backBtn = state.index === 0
-    ? spacer
-    : `<button type="button" class="navbtn navbtn--ghost" data-action="back">${ic('arrow-left')} Back</button>`;
-  let rightBtn;
-  if (q.optional) {
-    rightBtn = `<button type="button" class="navbtn navbtn--ghost" data-action="skip">${ic('arrow-right')} Skip</button>`;
-  } else if (canContinue) {
-    rightBtn = `<button type="button" class="navbtn navbtn--solid" data-action="next">Continue ${ic('arrow-right')}</button>`;
-  } else {
-    rightBtn = spacer;
-  }
-  return `
-    <div class="advisor__nav" role="navigation" aria-label="Question navigation">
-      ${backBtn}
-      <span class="advisor__hint">${hint}</span>
-      ${rightBtn}
-    </div>`;
-}
-
-function buildVerdictHTML(v) {
-  const verdictIcon = {
-    agreement: 'circle-check', partial: 'code-merge', divergence: 'arrows-split-up-and-left',
-  }[v.state] || 'circle-check';
-  const reasonsList = v.reasons.length
-    ? `<ul class="verdict__reasons">${v.reasons.map(b => `<li><a href="${b.anchor}">${b.text}</a></li>`).join('')}</ul>`
-    : '';
-  return `
-    <div class="verdict verdict--${v.state}">
-      <div class="verdict__icon" aria-hidden="true">${ic(verdictIcon)}</div>
-      <div class="verdict__body">
-        <p class="verdict__headline">${v.headline}</p>
-        <p class="verdict__detail">${v.detail}</p>
-        ${reasonsList}
-      </div>
-    </div>`;
-}
 
 /* ── State machine ──────────────────────────────────────── */
 let state = {
@@ -198,7 +93,7 @@ function syncQuestion(panel, q) {
 
   const ft = panel.querySelector('[data-freetext]');
   if (ft) {
-    const show = q.id === 'backend' && value === 'other';
+    const show = !!q.options?.find(o => o.v === value)?.freetext;
     ft.hidden = !show;
     const input = ft.querySelector('input');
     if (input) input.value = state.freeText || '';
@@ -285,7 +180,7 @@ function setupQuestion(root) {
   const q = questions[state.index];
   const target = root.querySelector(`.stage[data-panel="q"][data-step="${state.index}"]`);
   syncQuestion(target, q);
-  root.querySelector('.advisor__nav-mount').innerHTML = buildNav(q);
+  root.querySelector('.advisor__nav-mount').innerHTML = buildNav(q, state);
   return target;
 }
 
@@ -329,7 +224,7 @@ function setup() {
 
   // Progress
   const pm = root.querySelector('.advisor__progress-mount');
-  if (pm) pm.innerHTML = state.mode !== 'oos' ? buildProgress(state.index, state.mode) : '';
+  if (pm) pm.innerHTML = state.mode !== 'oos' ? buildProgress(state.index, state.mode, questions) : '';
 
   const target =
     state.mode === 'q'      ? setupQuestion(root) :
@@ -371,7 +266,7 @@ function refreshActiveQuestion() {
   const q = questions[state.index];
   const panel = root.querySelector(`.stage[data-panel="q"][data-step="${state.index}"]`);
   if (panel) syncQuestion(panel, q);
-  root.querySelector('.advisor__nav-mount').innerHTML = buildNav(q);
+  root.querySelector('.advisor__nav-mount').innerHTML = buildNav(q, state);
 }
 
 function select(qId, value) {
@@ -383,7 +278,7 @@ function select(qId, value) {
     go('oos', undefined, 'fwd');
     return;
   }
-  if (qId === 'backend' && value === 'other') {
+  if (selectedOpt?.freetext) {
     refreshActiveQuestion(); // reveal free-text input without advancing
     return;
   }

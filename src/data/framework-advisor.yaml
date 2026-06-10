@@ -183,6 +183,7 @@ questions:
       - v: other
         icon: ellipsis
         label: Other / No decision yet
+        freetext: true
         freeText: Tell us what you use (optional)
 
   - id: hiring
