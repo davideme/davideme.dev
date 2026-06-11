@@ -24,9 +24,13 @@ import FrameworkAdvisorWidget from '../../components/FrameworkAdvisorWidget.astr
 
 ## Scope
 
-This document covers frontend framework selection for: single-page applications (SPAs), progressive web apps (PWAs), dynamic dashboards, and e-commerce platforms. All cases where you have a separate backend API and need a UI layer on top of it.
+This document is for teams that have already chosen client-side rendering (CSR). That covers single-page applications (SPAs), multi-page applications (MPAs), progressive web apps (PWAs), and micro frontend architectures. What they share: the UI runs in the browser, and it talks to a backend API you control separately.
 
-It does not cover content-driven websites (blogs, marketing sites, docs), desktop apps, or mobile apps, where the trade-offs are different.
+The question this document answers is: given that choice, which frontend framework fits your team?
+
+If you haven't decided on CSR yet, or aren't sure whether you need server-side rendering, this document isn't the right starting point. SSR involves a different set of trade-offs and requires a meta framework. That comparison belongs in a dedicated article on meta frameworks.
+
+This document also does not cover content-driven websites (blogs, marketing sites, docs), desktop apps, or mobile apps.
 
 ---
 
@@ -36,7 +40,7 @@ Before picking a framework, it's worth understanding the split in the landscape.
 
 A **frontend framework** (React, Vue, Svelte, Angular, Solid) handles the UI layer. It runs in the browser and talks to a backend API you manage separately. This is the right choice when your backend is already decided.
 
-A **meta framework** (Next.js, Nuxt, SvelteKit) wraps a frontend framework and adds a server layer: server-side rendering, API routes, middleware, and integrated deployment. These are designed for cases where you want frontend and backend in one repo, or need SEO on public pages.
+A **meta framework** (Next.js, Nuxt, SvelteKit, React Router framework mode, TanStack Start) wraps a frontend framework and adds a server layer: server-side rendering, API routes, middleware, and integrated deployment. These are designed for cases where you want frontend and backend in one repo, or need SEO on public pages.
 
 **For a SaaS with an existing backend, you want a frontend framework.** Meta frameworks introduce a server layer you don't need and couple your frontend to a specific deployment model. Most LLMs default to recommending Next.js without making this distinction, which is worth being aware of.
 
