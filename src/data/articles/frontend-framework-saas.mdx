@@ -12,21 +12,21 @@ tags:
   - solid
   - saas
   - architecture
-featured: false
-draft: true
+featured: true
+draft: false
 ---
 
 import FrameworkAdvisorWidget from '../../components/FrameworkAdvisorWidget.astro';
 
-*Research document, June 2026.*
-
----
-
 ## Scope
 
-This document covers frontend framework selection for: single-page applications (SPAs), progressive web apps (PWAs), dynamic dashboards, and e-commerce platforms. All cases where you have a separate backend API and need a UI layer on top of it.
+This article is for teams that have already chosen client-side rendering (CSR). That covers single-page applications (SPAs), multi-page applications (MPAs), progressive web apps (PWAs), and micro frontend architectures. What they share: the UI runs in the browser, and it talks to a backend API you control separately.
 
-It does not cover content-driven websites (blogs, marketing sites, docs), desktop apps, or mobile apps, where the trade-offs are different.
+The question answered here is: given that choice, which frontend framework fits your team?
+
+In a hurry? [Jump to the interactive advisor](#how-to-decide) and get a recommendation based on your constraints.
+
+It does not cover content-driven websites (blogs, marketing sites, docs), desktop apps, or mobile apps.
 
 ---
 
@@ -36,9 +36,11 @@ Before picking a framework, it's worth understanding the split in the landscape.
 
 A **frontend framework** (React, Vue, Svelte, Angular, Solid) handles the UI layer. It runs in the browser and talks to a backend API you manage separately. This is the right choice when your backend is already decided.
 
-A **meta framework** (Next.js, Nuxt, SvelteKit) wraps a frontend framework and adds a server layer: server-side rendering, API routes, middleware, and integrated deployment. These are designed for cases where you want frontend and backend in one repo, or need SEO on public pages.
+A **meta framework** (Next.js, Nuxt, SvelteKit, React Router framework mode, TanStack Start) wraps a frontend framework and adds a server layer: server-side rendering, API routes, middleware, and integrated deployment.
 
 **For a SaaS with an existing backend, you want a frontend framework.** Meta frameworks introduce a server layer you don't need and couple your frontend to a specific deployment model. Most LLMs default to recommending Next.js without making this distinction, which is worth being aware of.
+
+If you do need server-side rendering, comparing meta frameworks involves a different set of trade-offs and belongs in a dedicated article. But because every meta framework wraps one of the five frameworks compared here, this article still helps you narrow down the UI layer underneath.
 
 ---
 
@@ -130,6 +132,12 @@ Legend: **Built-in** = ships with the framework, opinionated, no library needed.
 ## Performance
 
 All five frameworks perform adequately for real-world SaaS UIs. The differences only show up at row counts (100k+) no dashboard should render without virtualisation — and libraries like TanStack Virtual eliminate that gap anyway.
+
+### Core Web Vitals and INP
+
+Google's Interaction to Next Paint (INP) measures how quickly a page responds to user input. Any framework can fail it. The root cause is JS execution on the main thread: large bundles loaded upfront, expensive re-renders triggered by interactions, or third-party scripts blocking the thread. This is not specific to React or any single framework. The fix is the same regardless of framework: code splitting, lazy loading, and keeping interaction handlers lightweight.
+
+For SaaS apps behind a login, most users are on decent hardware and INP is rarely a problem in practice, but it is worth measuring with real user data (PageSpeed Insights, web-vitals JS library) rather than assuming.
 
 ---
 

@@ -15,7 +15,7 @@ tags:
   - performance
   - database
   - developer-productivity
-featured: true
+featured: false
 draft: false
 ---
 
