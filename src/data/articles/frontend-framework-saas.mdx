@@ -135,6 +135,12 @@ Legend: **Built-in** = ships with the framework, opinionated, no library needed.
 
 All five frameworks perform adequately for real-world SaaS UIs. The differences only show up at row counts (100k+) no dashboard should render without virtualisation — and libraries like TanStack Virtual eliminate that gap anyway.
 
+### Core Web Vitals and INP
+
+Google's Interaction to Next Paint (INP) measures how quickly a page responds to user input. Any framework can fail it. The root cause is JS execution on the main thread: large bundles loaded upfront, expensive re-renders triggered by interactions, or third-party scripts blocking the thread. This is not specific to React or any single framework. The fix is the same regardless of framework: code splitting, lazy loading, and keeping interaction handlers lightweight.
+
+For SaaS apps behind a login, most users are on decent hardware and INP is rarely a problem in practice, but it is worth measuring with real user data (PageSpeed Insights, web-vitals JS library) rather than assuming.
+
 ---
 
 ## Developer Experience
