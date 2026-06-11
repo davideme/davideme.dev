@@ -16,12 +16,11 @@ const metaFw = metaKey ? advisorData.meta[metaKey] : null;
 
 const pct = fw.usage;
 const AB_MAX = 30;
-const AB_TICKS = [5, 10, 20, 30];
 const width = Math.min(100, (pct / AB_MAX) * 100);
 
 const srLabel = metaFw
-  ? `${metaFw.name} is built on ${fw.name} (${pct}% usage)`
-  : `Industry adoption — ${fw.name} ${pct}% (Stack Overflow Survey 2025)`;
+  ? `${metaFw.name} is built on ${fw.name} (${fw.usageRank} industry adoption)`
+  : `Industry adoption — ${fw.name} ${fw.usageRank} (Stack Overflow Survey 2025)`;
 const note = metaFw
   ? `${metaFw.name} shares ${fw.name}'s adoption — ${fw.usageNote.toLowerCase()}`
   : fw.usageNote;
@@ -33,13 +32,9 @@ const note = metaFw
     {!compact && <span class="adopt__src">Stack Overflow '25</span>}
   </div>
   <div class="adopt__track" aria-hidden="true">
-    {AB_TICKS.map(tk => <span class="adopt__tick" style={`left:${(tk / AB_MAX) * 100}%`}></span>)}
     <div class="adopt__fill" data-width={width} style={`width:0%;background:${fw.brand}`}>
-      <span class="adopt__pct" style="color:#fff">{pct}%</span>
+      <span class="adopt__pct" style="color:#fff">{fw.usageRank}</span>
     </div>
-  </div>
-  <div class="adopt__ticks" aria-hidden="true">
-    {AB_TICKS.map(tk => <span class="adopt__ticklbl" style={`left:${(tk / AB_MAX) * 100}%`}>{tk}%</span>)}
   </div>
   <p class="adopt__note">
     {metaFw
@@ -62,18 +57,12 @@ const note = metaFw
     position: relative; height: 14px; border-radius: 980px;
     background: var(--bg-2); border: 1px solid var(--border-1); overflow: hidden;
   }
-  .adopt__tick { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--border-1); z-index: 1; }
   .adopt__fill {
     position: relative; height: 100%; border-radius: 980px; z-index: 2;
     transition: width .42s cubic-bezier(.2,.7,.2,1);
     display: flex; align-items: center; justify-content: flex-end; min-width: 30px;
   }
   .adopt__pct { font-size: 10px; font-weight: 700; padding-right: 8px; font-variant-numeric: tabular-nums; }
-  .adopt__ticks { position: relative; height: 13px; }
-  .adopt__ticklbl {
-    position: absolute; top: 0; transform: translateX(-50%); font-size: 10px;
-    color: var(--fg-3); font-variant-numeric: tabular-nums;
-  }
   .adopt__note { font-size: var(--fs-2xs); color: var(--fg-3); line-height: 1.45; margin: 0; }
   @media (prefers-reduced-motion: reduce) { .adopt__fill { transition: none; } }
   .adopt--compact .adopt__track { height: 11px; }
