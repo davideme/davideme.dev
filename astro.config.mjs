@@ -7,7 +7,7 @@ import { unified, rehypeHeadingIds } from '@astrojs/markdown-remark';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://davideme.dev',
+  site: 'https://davideme.com',
   markdown: {
     processor: unified({
       rehypePlugins: [
