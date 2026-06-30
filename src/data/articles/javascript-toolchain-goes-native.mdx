@@ -1,0 +1,109 @@
+---
+title: "The Year JavaScript's Toolchain Went Native"
+author: Davide Mendolia
+description: "Rust and Go are rewriting the JavaScript toolchain: Vite, Bun, TypeScript, Tailwind, esbuild. But the foundation was always C++. A look at how the JS-written middle layer is collapsing onto a native base that was there all along."
+publishDate: 2026-06-29
+tags:
+  - javascript
+  - rust
+  - go
+  - tooling
+  - build-tools
+  - typescript
+  - vite
+  - bun
+featured: false
+draft: true
+---
+
+import NativeRewriteTimeline from '../../components/NativeRewriteTimeline.astro';
+
+## The pitch, and the problem with it
+
+2026 is being called the year of Rust in JavaScript, and the receipts are real. Vite 8 ships a Rust bundler. The TypeScript compiler was rewritten in Go. Bun rewrote its core from Zig to Rust. Tailwind's engine is Rust now. esbuild, SWC, Biome, Oxlint, Rolldown, Turbopack, Rspack: the list of native rewrites is long enough to feel like a movement.
+
+The usual framing is that JavaScript tooling is finally going native. That framing is half right and half backwards.
+
+It is backwards because the foundation was never JavaScript. The engines that run JS, V8 and JavaScriptCore, have been C++ for over a decade, on both the client and the server. And it is incomplete because the first generation of build tools, back before Node existed, was also native: C and Java, not JavaScript. The all-JavaScript toolchain that most developers think of as "normal" was a roughly ten-year exception, bookended by native code on both sides.
+
+So the cleaner thesis is this: the JS-written middle layer is collapsing onto a native base that was there all along. Rust is not making the toolchain native for the first time. It is reclaiming the layers that briefly weren't.
+
+---
+
+## Three eras
+
+The history of JavaScript tooling splits into three eras, and the language each tool is *written in* is the tell.
+
+The interactive timeline below lays them out. Filter by the part of the stack you care about (bundlers, linters, runtimes, the typechecker) and watch the bracket on each card swing from Java to JavaScript and back to Rust.
+
+<NativeRewriteTimeline />
+
+The bracket is the whole argument. C and Java in the first era. JavaScript in the middle. Rust and Go at the end. The shape is a U: native, then a JavaScript detour, then native again.
+
+---
+
+## Era one: native by default (2001 to 2009)
+
+Before Node, the only place to run JavaScript was a browser, so the tools that *processed* JavaScript could not themselves be JavaScript programs running on a server. They were native.
+
+The first popular minifier, Douglas Crockford's **JSMin** (2001), was written in C. Then came a run of Java tools on the JVM: **Dojo ShrinkSafe** (around 2005), Yahoo's **YUI Compressor** (2007), and Google's **Closure Compiler** (open-sourced November 2009). All of them used Rhino, a JavaScript engine written in Java, to parse the code they were shrinking. The tool was Java; the input was JavaScript. People conflate the two, but they were never the same thing.
+
+One nuance worth keeping straight: these were minifiers and compressors, not module bundlers. Resolving a dependency graph, the thing Webpack later made routine, did not arrive until the Node era. So "no bundler before 2011" is fair. "No native build tooling before esbuild" is not. There was C in 2001.
+
+---
+
+## Era two: the JavaScript exception (2009 to 2020)
+
+Node arrived in 2009 and changed the economics. Suddenly JavaScript had a server-side host, which meant the toolchain could be written in the same language it operated on. For about a decade, it was.
+
+**JSLint** (2002) had already pioneered linting, but it ran in a browser textarea. **JSHint** (2011) moved it to a Node command line. **ESLint** (2013) made every rule configurable and became the universal linter for a decade. **Prettier** (2017) ended formatting debates. On the bundling side, **Browserify** (2011) brought `require()` to the browser, **Webpack** (2012) folded task-running and bundling into one tool, **Grunt** and **Gulp** automated the busywork, and **Babel** (launched as 6to5 in 2014, renamed in 2015) transpiled tomorrow's JavaScript into today's.
+
+Every one of these was written in JavaScript, single-threaded, running on Node. This is the era developers picture when they say "JavaScript tooling." It is also the only era where the tools and the language matched. That is worth sitting with: the all-JS toolchain was the historical anomaly, not the natural state.
+
+And underneath it the whole time sat **Node itself**, which is to say V8, which is C++. The "JavaScript platform" was a JavaScript API over a C++ engine from day one.
+
+---
+
+## Era three: native again (2020 to now)
+
+**esbuild** (2020) was the starting gun. Written in Go, it was 10 to 100 times faster than the JavaScript bundlers, and it made an argument no benchmark could walk back: the toolchain did not have to be slow, it just had to stop being JavaScript. **SWC** followed in Rust, and once Next.js adopted it by default, the approach was production-blessed.
+
+From there the wave broadened into every corner of the stack at once:
+
+**Bundlers.** Rspack and Turbopack (Rust) chase Webpack. Rolldown (Rust, built on the Oxc compiler) is a drop-in Rollup replacement. **Vite 8** is the consolidation moment: it replaces both esbuild and Rollup with a single Rust toolchain (Rolldown, Oxc, and Lightning CSS) maintained by one team. Linear's production build dropped from 46 seconds to 6.
+
+**Linters and formatters.** This lineage rhymes with the bundler one exactly. ESLint and Prettier were the JavaScript incumbents; **Biome** (Rust) replaces both in one tool, and **Oxlint** (Rust) lints 50 to 100 times faster than ESLint. Same story, different corner.
+
+**The typechecker.** Microsoft ported the TypeScript compiler to **Go**, not Rust, which started its own debate, for roughly a 10x speedup. The VS Code codebase typechecks in 7.5 seconds instead of 78.
+
+**CSS.** Tailwind v4's **Oxide** engine is Rust, and it did the most on-the-nose thing in the whole story: it deleted the JavaScript config file. Not just the engine going native, but JavaScript pushed out of the configuration surface too.
+
+**The runtime itself.** **Deno** was Rust from early on. **Bun**, originally Zig, rewrote roughly 960,000 lines into Rust, a migration done largely with Claude Code, after Anthropic acquired it in December 2025. **Astro 7** took its `.astro` compiler from Go to Rust. Even Node is quietly swapping internals: its URL parser is now Ada (C++), and its built-in TypeScript stripping runs on SWC (Rust).
+
+**Desktop and packages.** Tauri (Rust) replaces Electron's bundled-Chromium-plus-Node model with the OS-native WebView, shrinking apps by around 96%. pnpm's `pacquet` ports its install phase to Rust.
+
+---
+
+## What's actually driving it
+
+Speed is the headline, but it is not the whole motive, and the differences matter.
+
+For bundlers and linters, raw throughput is the point: parsing and traversing huge syntax trees is exactly the work where a compiled, parallel language crushes single-threaded JavaScript. For **Bun's** rewrite, the stated motivation was memory safety and a larger contributor pool, not speed. Zig had too few developers and too many use-after-free bugs. For **TypeScript**, Go was chosen over Rust specifically because the existing compiler ported more cleanly to it, keeping the type-checking logic structurally identical. Different problems, different native answers.
+
+The through-line is that the constraints that once forced JavaScript on the toolchain (write-once, run-in-the-browser, share code with the app) stopped applying to tools. A bundler does not run in your user's browser. It runs on your machine and in CI, where startup time and parallelism are everything and "it's the same language as the app" buys you almost nothing.
+
+---
+
+## The one part that's still JavaScript
+
+To keep the claim honest: the wave is broad but not total. Test runners are the holdout. Vitest, the modern favorite, is still JavaScript. It rides on Vite, so it inherits the native speedups indirectly, but the runner itself is JS. Jest is JS. The exception is Bun's built-in test runner, which sits on its native core. There is no clean "the test runner went Rust" story yet. That is the layer JavaScript still owns.
+
+---
+
+## So whose year is it, really
+
+Calling 2026 the year of Rust is good marketing and roughly true. But the deeper pattern is more interesting than a single language winning.
+
+What is ending is the assumption that the JavaScript ecosystem's tools should be written in JavaScript. That assumption had a good decade-long run, and it produced Webpack, Babel, ESLint, and Prettier, the tools that defined how a generation builds for the web. But it was always a convenience, not a law, and it sat on a C++ foundation the entire time.
+
+The tools are simply rejoining the foundation. V8 and JavaScriptCore were C++ before any of this. Now the bundler, the linter, the formatter, the typechecker, the CSS engine, and increasingly the runtime are native too. The JavaScript you write hasn't changed. Almost everything that processes it has.
