@@ -33,5 +33,10 @@ export default defineConfig({
   build: {
     assets: '_astro'
   },
+  server: {
+    // Honor the PORT env var (used by the preview harness' autoPort) so the
+    // dev server can bind to an assigned free port; default to 4321 otherwise.
+    port: process.env.PORT ? Number(process.env.PORT) : 4321
+  },
   output: 'static'
 });

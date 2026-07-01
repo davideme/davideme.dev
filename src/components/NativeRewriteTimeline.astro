@@ -1,0 +1,652 @@
+---
+// Interactive horizontal timeline of the JavaScript toolchain going native.
+//
+// Ported from the Claude Design project "Interactive timeline animation"
+// (NativeRewriteTimeline.dc.html). Three eras on a single horizontal track;
+// click a pill or an era zone to zoom in and expand that era's full tool list,
+// or hit Play for a guided tour. Self-contained: data + vanilla renderer +
+// a GSAP-driven reveal, all inline. GSAP is loaded lazily from a CDN and the
+// widget degrades to a fully-visible static state if it fails to load.
+//
+// The design's own tokens (--fg-1, --bg-1, --accent, ...) are mapped onto the
+// site's global tokens in the scoped <style> below, so the widget follows the
+// light/dark theme automatically.
+---
+
+<section
+  class="nrt"
+  data-nrt-root
+  aria-label="Interactive timeline: the JavaScript toolchain going native"
+>
+  <noscript>
+    <ol class="nrt__fallback">
+      <li><strong>Pre-Node era (2001–2009)</strong> — native by default: JSMin (C), then Java/JVM minifiers up to Closure Compiler.</li>
+      <li><strong>Node era (2009–2020)</strong> — the JavaScript exception: Browserify, Webpack, ESLint, Prettier, Babel, all JS on a C++ (V8) base.</li>
+      <li><strong>Rust era (2020–now)</strong> — native again: esbuild (Go), SWC, Biome, Oxlint, Rolldown, and Vite 8, the Rust consolidation.</li>
+    </ol>
+  </noscript>
+</section>
+
+<!-- is:global because the timeline DOM is built client-side (in the script
+     below); Astro's default scoped styles only attach to build-time elements,
+     so class rules on JS-created nodes would be dropped. Every selector here is
+     namespaced under .nrt, so it stays confined to this widget. -->
+<style is:global>
+  .nrt {
+    /* Map the design's tokens onto the site's global tokens. */
+    --fg-1: var(--primary-color);
+    --fg-2: var(--secondary-color);
+    --fg-3: var(--text-light);
+    --bg-1: var(--card-bg);
+    --border-1: var(--border-color);
+    --accent: var(--accent-color);
+    --radius-lg: 16px;
+    --space-6: 24px;
+    --nrt-elev: var(--bg-light);
+
+    font-family: var(--font);
+    color: var(--fg-1);
+    background: var(--bg-1);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    /* The timeline track is a fixed 970px; size the card to fit it exactly:
+       970 track + 2×24px padding + 2×1px border = 1020px (box-sizing is
+       border-box, so the border counts toward width). Break out of the ~720px
+       prose column so the whole timeline shows with no horizontal scroll.
+       Clamps to the viewport on narrow screens, where the track scrolls. */
+    width: min(1020px, 100vw - 2rem);
+    max-width: none;
+    margin: 2rem 0;
+    margin-left: 50%;
+    transform: translateX(-50%);
+    box-sizing: border-box;
+    box-shadow: var(--shadow-card);
+  }
+
+  .nrt__pills {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 0 0 8px;
+  }
+
+  /* On narrow screens the three era pills get squeezed to a third of the
+     width each, wrapping their labels. Stack them one per row instead.
+     flex:0 0 auto overrides the pills' inline flex:1 1 0 (whose 0 basis would
+     otherwise collapse them to zero height in a column). */
+  @media (max-width: 560px) {
+    .nrt .nrt__pills {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .nrt .nrt__pills [data-pill] {
+      flex: 0 0 auto !important;
+      width: 100%;
+    }
+  }
+
+  .nrt__scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .nrt__track {
+    position: relative;
+    height: 498px;
+    min-width: 970px;
+  }
+
+  .nrt__baseline {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--border-1);
+    transform: translateY(-50%);
+  }
+
+  .nrt__zones {
+    position: absolute;
+    inset: 0;
+    display: flex;
+  }
+
+  .nrt [data-tl-zone] {
+    transition: flex-grow 0.6s cubic-bezier(0.55, 0.03, 0.2, 1), background 0.4s ease;
+  }
+
+  .nrt__nodes {
+    position: absolute;
+    inset: 0;
+    display: flex;
+  }
+
+  .nrt__legend {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-1);
+  }
+
+  .nrt [data-pill] {
+    transition: background 0.2s ease, border-color 0.2s ease;
+  }
+  .nrt [data-pill]:hover {
+    border-color: var(--fg-3) !important;
+  }
+  .nrt [data-nrt-play] {
+    transition: background 0.2s ease;
+  }
+  .nrt [data-nrt-play]:hover {
+    background: var(--accent-hover) !important;
+  }
+
+  .nrt__fallback {
+    margin: 0;
+    padding-left: 1.1rem;
+    display: grid;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--fg-2);
+  }
+  .nrt__fallback strong {
+    color: var(--fg-1);
+  }
+</style>
+
+<script>
+  (() => {
+    const root = document.querySelector('[data-nrt-root]');
+    if (!root || root.dataset.nrtReady) return;
+    root.dataset.nrtReady = '1';
+
+    const esc = (s) =>
+      String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    // ---- data (verbatim from the design) --------------------------------
+    const colors = {
+      C: '#7E8A93',
+      Java: '#B5742E',
+      JavaScript: '#E3B324',
+      'C++': '#5E7CA6',
+      Go: '#21A0C4',
+      Rust: '#C5532A',
+    };
+    const accents = { 1: '#B5742E', 2: '#E3B324', 3: '#C5532A' };
+    const picks = {
+      1: { s: 'JSMin', f: 'Closure Compiler' },
+      2: { s: 'Browserify', f: 'Webpack' },
+      3: { s: 'esbuild', f: 'Vite 8' },
+    };
+    const enablerTool = { 1: null, 2: 'Node', 3: null };
+
+    const milestones = [
+      { name: 'JSMin', year: 2001, era: 1, lang: 'C', role: 'Starter', note: 'Crockford’s minifier, the first popular one. Necessarily native.' },
+      { name: 'Closure Compiler', year: 2009, era: 1, lang: 'Java', role: 'Flagship', note: 'Google’s compiler — JS optimized by a tool written in Java.' },
+      { name: 'Node', year: 2009, era: 2, lang: 'C++', role: 'Enabler', note: 'JS gets a server host — so the toolchain can be JS too.' },
+      { name: 'Webpack', year: 2012, era: 2, lang: 'JavaScript', role: 'Flagship', note: 'Peak JS toolchain: bundling and task-running in one.' },
+      { name: 'esbuild', year: 2020, era: 3, lang: 'Go', role: 'Starter', note: 'The starting gun — 10 to 100× faster than the incumbents.' },
+      { name: 'Vite 8', year: 2026, era: 3, lang: 'Rust', role: 'Flagship', note: 'Consolidation — a single Rust toolchain.' },
+    ];
+
+    const eraMeta = {
+      1: { roman: 'I', name: 'Pre-node era', range: '2001 – 2009' },
+      2: { roman: 'II', name: 'Node era', range: '2009 – 2020' },
+      3: { roman: 'III', name: 'Rust era', range: '2020 – now' },
+    };
+
+    const tools = [
+      { name: 'JSMin', year: 2001, era: 1, language: 'C', category: 'Minifiers', note: 'Crockford’s minifier — the first popular one.' },
+      { name: 'JSLint', year: 2002, era: 1, language: 'JavaScript', category: 'Linters & Formatters', note: 'Pioneered linting — but ran in a browser textarea.' },
+      { name: 'Dojo ShrinkSafe', year: 2005, era: 1, language: 'Java', category: 'Minifiers', note: 'Compressor that parsed JS via Rhino, a JS engine in Java.' },
+      { name: 'YUI Compressor', year: 2007, era: 1, language: 'Java', category: 'Minifiers', note: 'Yahoo’s minifier, also on the JVM.' },
+      { name: 'Closure Compiler', year: 2009, era: 1, language: 'Java', category: 'Minifiers', note: 'Google’s; open-sourced November 2009.' },
+      { name: 'Node', year: 2009, era: 2, language: 'C++', category: 'Runtimes', note: 'The “JS platform” was a C++ engine (V8) all along.' },
+      { name: 'Browserify', year: 2011, era: 2, language: 'JavaScript', category: 'Bundlers', note: 'Brought require() to the browser.' },
+      { name: 'JSHint', year: 2011, era: 2, language: 'JavaScript', category: 'Linters & Formatters', note: 'Moved linting to the Node command line.' },
+      { name: 'Webpack', year: 2012, era: 2, language: 'JavaScript', category: 'Bundlers', note: 'Folded bundling and task-running into one tool.' },
+      { name: 'Grunt / Gulp', year: 2012, era: 2, language: 'JavaScript', category: 'Bundlers', note: 'Automated the build busywork.' },
+      { name: 'ESLint', year: 2013, era: 2, language: 'JavaScript', category: 'Linters & Formatters', note: 'Configurable rules; the universal linter for a decade.' },
+      { name: 'Babel', year: 2014, era: 2, language: 'JavaScript', category: 'Other', note: 'Tomorrow’s JS into today’s. Launched as 6to5.' },
+      { name: 'Prettier', year: 2017, era: 2, language: 'JavaScript', category: 'Linters & Formatters', note: 'Ended the formatting debates.' },
+      { name: 'esbuild', year: 2020, era: 3, language: 'Go', category: 'Bundlers', note: 'The starting gun — 10 to 100× faster.' },
+      { name: 'SWC', year: 2020, era: 3, language: 'Rust', category: 'Bundlers', note: 'Production-blessed once Next.js shipped it by default.' },
+      { name: 'Deno', year: 2020, era: 3, language: 'Rust', category: 'Runtimes', note: 'Rust from early on.' },
+      { name: 'Turbopack', year: 2022, era: 3, language: 'Rust', category: 'Bundlers', note: 'Chases Webpack.' },
+      { name: 'Tauri', year: 2022, era: 3, language: 'Rust', category: 'Runtimes', note: 'OS-native WebView — ~96% smaller apps than Electron.' },
+      { name: 'Biome', year: 2023, era: 3, language: 'Rust', category: 'Linters & Formatters', note: 'Replaces ESLint and Prettier in one tool.' },
+      { name: 'Rspack', year: 2023, era: 3, language: 'Rust', category: 'Bundlers', note: 'Chases Webpack.' },
+      { name: 'Rolldown', year: 2024, era: 3, language: 'Rust', category: 'Bundlers', note: 'Drop-in Rollup replacement, built on Oxc.' },
+      { name: 'Oxlint', year: 2024, era: 3, language: 'Rust', category: 'Linters & Formatters', note: '50 to 100× faster than ESLint.' },
+      { name: 'Tailwind Oxide', year: 2024, era: 3, language: 'Rust', category: 'CSS', note: 'Deleted the JavaScript config file.' },
+      { name: 'pnpm pacquet', year: 2024, era: 3, language: 'Rust', category: 'Other', note: 'Ports the install phase to Rust.' },
+      { name: 'TypeScript', year: 2025, era: 3, language: 'Go', category: 'Typechecker', note: 'Ported to Go for ~10×. VS Code: 78s → 7.5s.' },
+      { name: 'Bun', year: 2025, era: 3, language: 'Rust', category: 'Runtimes', note: '~960k lines Zig → Rust, largely with Claude Code.' },
+      { name: 'Astro 7', year: 2025, era: 3, language: 'Rust', category: 'Other', note: '.astro compiler ported Go → Rust.' },
+      { name: 'Vite 8', year: 2026, era: 3, language: 'Rust', category: 'Bundlers', note: 'The consolidation moment — one Rust toolchain.' },
+    ];
+
+    const lineGrads = {
+      1: 'linear-gradient(90deg,#7E8A93 0%,#B5742E 55%,#E3B324 100%)',
+      2: 'linear-gradient(90deg,#E3B324 0%,#E3B324 55%,#21A0C4 100%)',
+      3: 'linear-gradient(90deg,#21A0C4 0%,#C5532A 100%)',
+    };
+
+    // ---- state ----------------------------------------------------------
+    const state = { zoom: null, playing: false };
+    let timers = [];
+
+    // ---- node + value builders (ported from mkNode / renderVals) --------
+    function mkNode(item, i, ac, dense) {
+      const above = i % 2 === 0;
+      const col = colors[item.lang];
+      const yearFs = dense ? 17 : 30;
+      const nameFs = dense ? 11 : 16;
+      const dotSz = dense ? 12 : 15;
+      return {
+        above,
+        below: !above,
+        name: item.name,
+        year: String(item.year),
+        note: dense ? '' : item.note,
+        noteStyle: dense
+          ? 'display:none;'
+          : 'font-size:11.5px; line-height:1.42; color:var(--fg-2); margin-top:5px;',
+        bracket: '[ ' + item.lang + ' ]',
+        bracketStyle:
+          'font-family:var(--font-mono); font-weight:600; font-size:' +
+          (dense ? 10.5 : 12.5) +
+          'px; white-space:nowrap; color:' + col + ';',
+        nameStyle:
+          'font-family:var(--font); font-weight:600; font-size:' +
+          nameFs +
+          'px; letter-spacing:-.01em; color:var(--fg-1);',
+        tag: dense ? '' : item.tag,
+        tagStyle:
+          dense || !item.tag
+            ? 'display:none;'
+            : 'display:inline-block; font-family:var(--font-mono); font-size:8.5px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:' +
+              ac + '; background:' + ac + '22; padding:2px 8px; border-radius:8px;',
+        dotStyle:
+          'width:' + dotSz + 'px; height:' + dotSz +
+          'px; border-radius:50%; background:' + col +
+          '; box-shadow:0 0 0 3.5px var(--bg-1), 0 0 0 5px ' + col + '40;',
+        outerStyle:
+          'width:9px; height:9px; border-radius:50%; background:var(--bg-1); border:2.5px solid ' +
+          col + ';',
+        yearStyle:
+          'font-family:var(--font); font-weight:700; font-size:' + yearFs +
+          'px; line-height:1; letter-spacing:-.02em; color:' + col + ';',
+        colStyle: 'position:relative; flex:1 1 0;',
+      };
+    }
+
+    function eraValues() {
+      const zoom = state.zoom;
+      return [1, 2, 3].map((id) => {
+        const m = eraMeta[id];
+        const ac = accents[id];
+        const pk = picks[id];
+        const enTool = enablerTool[id];
+        const active = zoom === id;
+        const sliver = zoom != null && !active;
+
+        let items;
+        if (active) {
+          items = tools
+            .filter((t) => t.era === id)
+            .sort((a, b) => a.year - b.year)
+            .map((t) => {
+              const role =
+                t.name === pk.s
+                  ? 'Starter'
+                  : t.name === pk.f
+                  ? 'Flagship'
+                  : t.name === enTool
+                  ? 'Enabler'
+                  : '';
+              return {
+                name: t.name,
+                year: t.year,
+                lang: t.language,
+                note: t.note,
+                tag: role || t.category,
+              };
+            });
+        } else if (sliver) {
+          items = [];
+        } else {
+          items = milestones
+            .filter((mk) => mk.era === id)
+            .map((mk) => ({ name: mk.name, year: mk.year, lang: mk.lang, note: mk.note, tag: mk.role }));
+        }
+
+        const dense = active && items.length > 6;
+        const nodes = items.map((it, i) => mkNode(it, i, ac, dense));
+
+        let grow;
+        if (zoom == null) grow = milestones.filter((mk) => mk.era === id).length || 1;
+        else if (active) grow = 24;
+        else grow = 1;
+
+        return {
+          id,
+          roman: m.roman,
+          name: m.name,
+          range: m.range,
+          accent: ac,
+          active,
+          grow,
+          lineGrad: lineGrads[id],
+          zoneBg: active ? ac + '22' : sliver ? ac + '0d' : ac + '14',
+          zoneLabel: sliver ? m.roman : m.roman + ' · ' + m.name,
+          labelOpacity: sliver ? '.55' : '1',
+          pillBg: active ? ac + '22' : 'var(--nrt-elev)',
+          pillBorder: active ? ac : 'var(--border-1)',
+          nodes,
+        };
+      });
+    }
+
+    function nodeHTML(n) {
+      const inner =
+        '<div style="' + n.tagStyle + '">' + esc(n.tag) + '</div>' +
+        '<div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-top:6px; flex-wrap:wrap;">' +
+        '<span style="' + n.nameStyle + '">' + esc(n.name) + '</span>' +
+        '<span style="' + n.bracketStyle + '">' + esc(n.bracket) + '</span>' +
+        '</div>' +
+        '<div style="' + n.noteStyle + '">' + esc(n.note) + '</div>';
+
+      const dot =
+        '<div data-tl-dot style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:3; ' +
+        n.dotStyle + '"></div>';
+
+      if (n.above) {
+        return (
+          '<div style="' + n.colStyle + '">' +
+          dot +
+          '<div data-tl-stem style="position:absolute; left:50%; top:180px; width:1.5px; height:64px; background:var(--border-1); transform:translateX(-50%) scaleY(1); transform-origin:bottom center;"></div>' +
+          '<div data-tl-outer style="position:absolute; left:50%; top:172px; transform:translate(-50%,-50%); z-index:2; ' + n.outerStyle + '"></div>' +
+          '<div data-tl-text style="position:absolute; left:5px; right:5px; bottom:338px; text-align:center;">' + inner + '</div>' +
+          '<div data-tl-year style="position:absolute; left:0; right:0; top:186px; text-align:center; ' + n.yearStyle + '">' + esc(n.year) + '</div>' +
+          '</div>'
+        );
+      }
+      return (
+        '<div style="' + n.colStyle + '">' +
+        dot +
+        '<div data-tl-stem style="position:absolute; left:50%; top:254px; width:1.5px; height:64px; background:var(--border-1); transform:translateX(-50%) scaleY(1); transform-origin:top center;"></div>' +
+        '<div data-tl-outer style="position:absolute; left:50%; top:326px; transform:translate(-50%,-50%); z-index:2; ' + n.outerStyle + '"></div>' +
+        '<div data-tl-year style="position:absolute; left:0; right:0; top:286px; text-align:center; ' + n.yearStyle + '">' + esc(n.year) + '</div>' +
+        '<div data-tl-text style="position:absolute; left:5px; right:5px; top:338px; text-align:center;">' + inner + '</div>' +
+        '</div>'
+      );
+    }
+
+    function playIcon(playing) {
+      return playing
+        ? '<svg width="11" height="11" viewBox="0 0 11 11" aria-hidden="true" style="display:block"><rect x="0.5" y="0.5" width="10" height="10" rx="2" fill="currentColor"/></svg>'
+        : '<svg width="11" height="11" viewBox="0 0 11 11" aria-hidden="true" style="display:block"><path d="M2 1.2 L9.8 5.5 L2 9.8 Z" fill="currentColor"/></svg>';
+    }
+
+    // ---- scaffold (built once; kept stable so zoom morphs smoothly) -----
+    root.insertAdjacentHTML(
+      'afterbegin',
+      '<div data-nrt="pills" class="nrt__pills"></div>' +
+        '<div class="nrt__scroll"><div data-nrt="track" class="nrt__track">' +
+        '<div class="nrt__baseline"></div><div class="nrt__zones"></div>' +
+        '</div></div>' +
+        '<div data-nrt="legend" class="nrt__legend"></div>'
+    );
+
+    const pillsWrap = root.querySelector('.nrt__pills');
+    const zonesWrap = root.querySelector('.nrt__zones');
+    const legendWrap = root.querySelector('.nrt__legend');
+
+    const initial = eraValues();
+    const pillEls = [];
+    const zoneEls = [];
+    const zoneLabelEls = [];
+    const nodeEls = [];
+
+    initial.forEach((era) => {
+      // pill
+      const pill = document.createElement('button');
+      pill.type = 'button';
+      pill.dataset.pill = String(era.id);
+      pill.setAttribute('aria-label', era.roman + ' · ' + era.name + ', ' + era.range);
+      pill.style.cssText =
+        'appearance:none; -webkit-appearance:none; margin:0; outline:none; box-sizing:border-box; cursor:pointer; flex:1 1 0; display:flex; align-items:center; gap:9px; padding:8px 14px; border-radius:var(--radius); border:1px solid var(--border-1); background:var(--nrt-elev);';
+      pill.innerHTML =
+        '<span style="width:9px; height:9px; border-radius:50%; background:' + era.accent + '; flex-shrink:0;"></span>' +
+        '<span style="font-family:var(--font); font-weight:600; font-size:14px; color:var(--fg-1);">' + esc(era.roman) + ' · ' + esc(era.name) + '</span>' +
+        '<span style="font-family:var(--font-mono); font-size:11px; color:var(--fg-3); margin-left:auto;">' + esc(era.range) + '</span>';
+      pill.addEventListener('click', () => toggleZoom(era.id));
+      pillsWrap.appendChild(pill);
+      pillEls.push(pill);
+
+      // zone
+      const zone = document.createElement('div');
+      zone.dataset.tlZone = '';
+      zone.dataset.era = String(era.id);
+      zone.style.cssText =
+        'margin:0 4px; border-radius:var(--radius); position:relative; cursor:pointer; overflow:hidden; flex-basis:0; flex-shrink:1;';
+      const line = document.createElement('div');
+      line.dataset.tlLine = '';
+      line.style.cssText =
+        'position:absolute; top:50%; left:0; right:0; height:2.5px; transform:translateY(-50%) scaleX(1); transform-origin:left center; background:' + era.lineGrad + ';';
+      const nodes = document.createElement('div');
+      nodes.className = 'nrt__nodes';
+      const label = document.createElement('div');
+      label.style.cssText =
+        'position:absolute; left:0; right:0; bottom:6px; text-align:center; font-family:var(--font-mono); font-size:10px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 4px;';
+      zone.append(line, nodes, label);
+      zone.addEventListener('click', () => toggleZoom(era.id));
+      zonesWrap.appendChild(zone);
+      zoneEls.push(zone);
+      zoneLabelEls.push(label);
+      nodeEls.push(nodes);
+    });
+
+    // legend
+    const legendNative = ['C', 'Java', 'JavaScript', 'C++', 'Go', 'Rust'];
+    const legendItems = legendNative
+      .map(
+        (name) =>
+          '<span style="display:inline-flex; align-items:center; gap:7px; font-family:var(--font-mono); font-size:12.5px; color:var(--fg-2);">' +
+          '<span style="width:11px; height:11px; border-radius:3px; background:' + colors[name] + ';"></span>' +
+          esc(name) + '</span>'
+      )
+      .join('');
+    const playStyle =
+      'appearance:none; -webkit-appearance:none; margin:0; outline:none; box-sizing:border-box; cursor:pointer; flex:0 0 auto; display:inline-flex; align-items:center; gap:8px; padding:9px 18px; border:none; border-radius:980px; font-family:var(--font); font-size:14px; font-weight:500; white-space:nowrap; color:#fff; background:var(--accent); margin-left:auto;';
+    legendWrap.innerHTML =
+      '<span style="font-family:var(--font-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--fg-3);">Written in</span>' +
+      '<div style="display:flex; gap:14px; flex-wrap:wrap; align-items:center;">' + legendItems + '</div>' +
+      '<button data-nrt-play type="button" style="' + playStyle + '"></button>';
+    const playBtn = legendWrap.querySelector('[data-nrt-play]');
+    playBtn.addEventListener('click', () => (state.playing ? stopTour() : startTour()));
+
+    // ---- render (updates the stable scaffold) ---------------------------
+    function render() {
+      const eras = eraValues();
+      eras.forEach((era, i) => {
+        const pill = pillEls[i];
+        pill.style.background = era.pillBg;
+        pill.style.borderColor = era.pillBorder;
+        pill.setAttribute('aria-pressed', String(era.active));
+
+        const zone = zoneEls[i];
+        zone.style.flexGrow = String(era.grow);
+        zone.style.background = era.zoneBg;
+
+        const label = zoneLabelEls[i];
+        label.textContent = era.zoneLabel;
+        label.style.color = era.accent;
+        label.style.opacity = era.labelOpacity;
+
+        nodeEls[i].innerHTML = era.nodes.map(nodeHTML).join('');
+      });
+      playBtn.innerHTML = playIcon(state.playing) + '<span>' + (state.playing ? 'Stop' : 'Play') + '</span>';
+    }
+
+    function setZoom(z) {
+      state.zoom = z;
+      render();
+    }
+    function toggleZoom(id) {
+      stopTour();
+      setZoom(state.zoom === id ? null : id);
+    }
+
+    // ---- guided tour ----------------------------------------------------
+    function clearTimers() {
+      timers.forEach(clearTimeout);
+      timers = [];
+    }
+    function stopTour() {
+      clearTimers();
+      if (state.playing) {
+        state.playing = false;
+        render();
+      }
+    }
+    function startTour() {
+      clearTimers();
+      state.playing = true;
+      setZoom(null);
+      const steps = [1, 2, 3, null];
+      const dwell = 2400;
+      let t = 500;
+      steps.forEach((z, i) => {
+        timers.push(
+          setTimeout(() => {
+            setZoom(z);
+            if (i === steps.length - 1) {
+              timers.push(
+                setTimeout(() => {
+                  state.playing = false;
+                  render();
+                }, 400)
+              );
+            }
+          }, t)
+        );
+        t += dwell;
+      });
+    }
+
+    render();
+
+    // ---- reveal animation (GSAP, loaded lazily; static fallback) --------
+    const reduceMotion =
+      window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function loadScript(src) {
+      return new Promise((res, rej) => {
+        if (Array.from(document.scripts).some((s) => s.src === src)) return res();
+        const s = document.createElement('script');
+        s.src = src;
+        s.onload = res;
+        s.onerror = rej;
+        document.head.appendChild(s);
+      });
+    }
+
+    async function ensureGsap() {
+      if (window.gsap && window.ScrollTrigger) return true;
+      try {
+        await loadScript('https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js');
+        await loadScript('https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js');
+        return !!(window.gsap && window.ScrollTrigger);
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function initGsap() {
+      const gsap = window.gsap;
+      gsap.registerPlugin(window.ScrollTrigger);
+      const q = (s) => Array.from(root.querySelectorAll(s));
+      let tl;
+
+      const hideAll = () => {
+        gsap.set(q('[data-pill]'), { y: 12, opacity: 0 });
+        gsap.set(q('[data-tl-line]'), { scaleX: 0 });
+        gsap.set(q('[data-tl-dot]'), { scale: 0, opacity: 0, transformOrigin: 'center' });
+        gsap.set(q('[data-tl-stem]'), { scaleY: 0 });
+        gsap.set(q('[data-tl-outer]'), { scale: 0, opacity: 0, transformOrigin: 'center' });
+        gsap.set(q('[data-tl-year], [data-tl-text]'), { opacity: 0, y: 10 });
+        gsap.set(q('[data-tl-zone]'), { opacity: 0 });
+        gsap.set(q('[data-nrt="legend"]'), { opacity: 0 });
+      };
+      const forceVisible = () => {
+        if (tl) tl.pause();
+        gsap.set(q('[data-tl-line]'), { scaleX: 1 });
+        ['[data-pill]', '[data-tl-zone]', '[data-tl-dot]', '[data-tl-stem]', '[data-tl-outer]', '[data-tl-year]', '[data-tl-text]', '[data-nrt="legend"]'].forEach(
+          (s) => q(s).forEach((el) => gsap.set(el, { clearProps: 'opacity,transform' }))
+        );
+      };
+
+      tl = gsap.timeline({ paused: true, defaults: { ease: 'power2.out' } });
+      tl.to(q('[data-pill]'), { y: 0, opacity: 1, duration: 0.45, stagger: 0.09 })
+        .to(q('[data-tl-zone]'), { opacity: 1, duration: 0.5, stagger: 0.09 }, '-=.2')
+        .to(q('[data-tl-line]'), { scaleX: 1, duration: 1, stagger: 0.12, ease: 'power2.inOut' }, '-=.25')
+        .to(q('[data-tl-dot]'), { scale: 1, opacity: 1, duration: 0.4, stagger: 0.12, ease: 'back.out(2.4)' }, '-=.7')
+        .to(q('[data-tl-stem]'), { scaleY: 1, duration: 0.35, stagger: 0.12 }, '<+=.1')
+        .to(q('[data-tl-outer]'), { scale: 1, opacity: 1, duration: 0.3, stagger: 0.12 }, '<+=.05')
+        .to(q('[data-tl-year]'), { opacity: 1, y: 0, duration: 0.4, stagger: 0.12 }, '<')
+        .to(q('[data-tl-text]'), { opacity: 1, y: 0, duration: 0.4, stagger: 0.12 }, '<+=.05')
+        .to(q('[data-nrt="legend"]'), { opacity: 1, duration: 0.4 }, '-=.2');
+
+      const startReveal = () => {
+        if (tl.progress() === 0 && !tl.isActive()) {
+          hideAll();
+          tl.play();
+        }
+      };
+      window.ScrollTrigger.create({ trigger: root, start: 'top 82%', once: true, onEnter: startReveal });
+      window.ScrollTrigger.refresh();
+      if (root.getBoundingClientRect().top < (window.innerHeight || 800) * 0.9) startReveal();
+
+      // watchdog: if the timeline stalls (e.g. background tab), snap to visible
+      let last = -1;
+      let stalls = 0;
+      const wd = setInterval(() => {
+        const p = tl.progress();
+        if (p >= 1) {
+          clearInterval(wd);
+          return;
+        }
+        if (tl.isActive()) {
+          if (p <= last + 1e-4) {
+            if (++stalls >= 3) {
+              forceVisible();
+              clearInterval(wd);
+            }
+          } else stalls = 0;
+          last = p;
+        }
+      }, 280);
+    }
+
+    if (!reduceMotion) {
+      ensureGsap().then((ok) => {
+        if (ok) {
+          try {
+            initGsap();
+          } catch (e) {
+            /* leave the widget fully visible */
+          }
+        }
+      });
+    }
+  })();
+</script>
