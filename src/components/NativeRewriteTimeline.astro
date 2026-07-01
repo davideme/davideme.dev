@@ -1,377 +1,629 @@
 ---
-// Interactive timeline of the JavaScript toolchain going native.
-// Three eras (pre-Node, Node, native) with a category filter.
-// Self-contained: no external data file, styles + vanilla JS inline.
-
-type Category =
-  | 'linters'
-  | 'build'
-  | 'runtimes'
-  | 'typechecker'
-  | 'desktop'
-  | 'packagers';
-
-type Era = 'pre-node' | 'node' | 'native';
-
-interface Entry {
-  year: string;
-  sort: number; // for ordering within/across eras
-  name: string;
-  lang: string; // implementation language label
-  era: Era;
-  categories: Category[];
-  note: string;
-}
-
-const categories: { key: Category; label: string }[] = [
-  { key: 'linters', label: 'Linters & formatters' },
-  { key: 'build', label: 'Build tools & bundlers' },
-  { key: 'runtimes', label: 'Runtimes' },
-  { key: 'typechecker', label: 'Typechecker' },
-  { key: 'desktop', label: 'Desktop shells' },
-  { key: 'packagers', label: 'Package managers' },
-];
-
-const eras: { key: Era; label: string; range: string; blurb: string }[] = [
-  {
-    key: 'pre-node',
-    label: 'Pre-Node era',
-    range: '2001 to 2009',
-    blurb: 'Native by default: C and Java/JVM tools, before Node existed.',
-  },
-  {
-    key: 'node',
-    label: 'Node era',
-    range: '2009 to 2020',
-    blurb: 'The exception: the toolchain rewritten in JavaScript, running on Node.',
-  },
-  {
-    key: 'native',
-    label: 'Native era',
-    range: '2020 to now',
-    blurb: 'Back to native: Rust and Go eat the JS-written middle layer.',
-  },
-];
-
-const entries: Entry[] = [
-  // Pre-Node era
-  { year: '2001', sort: 2001, name: 'JSMin', lang: 'C', era: 'pre-node', categories: ['build'], note: 'First popular JS minifier. Written in C: the very first build tool was already native.' },
-  { year: '2002', sort: 2002, name: 'JSLint', lang: 'JS (browser)', era: 'pre-node', categories: ['linters'], note: 'First popular linter. Ran in the browser, predating Node by seven years.' },
-  { year: '~2005', sort: 2005, name: 'Dojo ShrinkSafe', lang: 'Java', era: 'pre-node', categories: ['build'], note: 'Java compressor on Rhino. A true parser, also shortened identifiers.' },
-  { year: '2007', sort: 2007, name: 'YUI Compressor', lang: 'Java', era: 'pre-node', categories: ['build'], note: "Yahoo's Java minifier, used Rhino to tokenize. A compressor, not a bundler." },
-  { year: '2009', sort: 2009.5, name: 'Closure Compiler', lang: 'Java', era: 'pre-node', categories: ['build'], note: 'Google open-sourced its Java JS optimizer (Nov 2009), the same month Node era begins.' },
-
-  // Node era
-  { year: '2009', sort: 2009.1, name: 'Node.js', lang: 'C++ core', era: 'node', categories: ['runtimes'], note: 'Built on V8 (C++). The native base everything else sat on. ~70% C++.' },
-  { year: '2011', sort: 2011, name: 'Browserify', lang: 'JS', era: 'node', categories: ['build'], note: 'First real module bundler: Node-style require() in the browser.' },
-  { year: '2011', sort: 2011.5, name: 'JSHint', lang: 'JS (CLI)', era: 'node', categories: ['linters'], note: 'Fork of JSLint, moved linting to a Node command-line tool you could script.' },
-  { year: '2012', sort: 2012, name: 'Grunt', lang: 'JS', era: 'node', categories: ['build'], note: 'First big Node-era task runner, config-object based.' },
-  { year: '2012', sort: 2012.5, name: 'Webpack', lang: 'JS', era: 'node', categories: ['build'], note: 'Folded task-runner and bundler into one. Became the default bundler.' },
-  { year: '2013', sort: 2013, name: 'Gulp', lang: 'JS', era: 'node', categories: ['build'], note: 'Streams-based task runner, code-over-config.' },
-  { year: '2013', sort: 2013.5, name: 'ESLint', lang: 'JS', era: 'node', categories: ['linters'], note: 'Fully configurable linter. The universal linter for a decade.' },
-  { year: '2014', sort: 2014, name: 'Babel (6to5)', lang: 'JS', era: 'node', categories: ['build'], note: 'The universal transpiler. Launched as 6to5 (Oct 2014), renamed Babel (Feb 2015).' },
-  { year: '2017', sort: 2017, name: 'Prettier', lang: 'JS', era: 'node', categories: ['linters'], note: 'The opinionated formatter that ended formatting debates.' },
-  { year: '2018', sort: 2018, name: 'Deno', lang: 'Rust', era: 'node', categories: ['runtimes'], note: 'Ryan Dahl again. Rust runtime on V8. Started in Go, switched to Rust early.' },
-
-  // Native era
-  { year: '2020', sort: 2020, name: 'esbuild', lang: 'Go', era: 'native', categories: ['build'], note: 'The starting gun. 10 to 100x faster than the JS tools.' },
-  { year: '2020', sort: 2020.5, name: 'SWC', lang: 'Rust', era: 'native', categories: ['build'], note: 'Rust transpiler. Next.js adopting it signaled Rust was production-ready.' },
-  { year: '2023', sort: 2023, name: 'Biome', lang: 'Rust', era: 'native', categories: ['linters'], note: 'Fork of Rome, continued in Rust. One tool replacing ESLint + Prettier.' },
-  { year: '2024', sort: 2024, name: 'Rspack 1.0', lang: 'Rust', era: 'native', categories: ['build'], note: 'webpack-API-compatible Rust bundler. In production at TikTok, Discord, Microsoft.' },
-  { year: '2024', sort: 2024.4, name: 'Tauri 2.0', lang: 'Rust', era: 'native', categories: ['desktop'], note: 'Rust desktop shell using the OS WebView instead of bundled Chromium/Node. ~96% smaller than Electron.' },
-  { year: '2025', sort: 2025.0, name: 'Oxlint 1.0', lang: 'Rust', era: 'native', categories: ['linters'], note: 'Rust linter from Oxc. 50 to 100x faster than ESLint, 520+ rules.' },
-  { year: '2025', sort: 2025.1, name: 'Tailwind v4 (Oxide)', lang: 'Rust', era: 'native', categories: ['build'], note: "Most popular CSS framework's engine rewritten in Rust. Also dropped its JS config file." },
-  { year: '2025', sort: 2025.6, name: 'pnpm / pacquet', lang: 'Rust', era: 'native', categories: ['packagers'], note: "Rust port of pnpm's fetch-and-link phase. At least 2x faster installs." },
-  { year: '2025', sort: 2025.7, name: 'Bun acquired by Anthropic', lang: 'event', era: 'native', categories: ['runtimes'], note: "Anthropic's first acquisition. Bun is the infra under Claude Code." },
-  { year: '2026', sort: 2026.1, name: 'Vite 8 + Rolldown', lang: 'Rust', era: 'native', categories: ['build'], note: 'The consolidation: one Rust toolchain (Rolldown + Oxc + Lightning CSS) replaces esbuild and Rollup.' },
-  { year: '2026', sort: 2026.2, name: 'TypeScript 7 (tsgo)', lang: 'Go', era: 'native', categories: ['typechecker'], note: 'The compiler ported to Go. ~10x faster. Beta April 2026.' },
-  { year: '2026', sort: 2026.3, name: 'Bun → Rust', lang: 'Zig → Rust', era: 'native', categories: ['runtimes'], note: '~960k lines of Zig rewritten in Rust, done largely with Claude Code.' },
-  { year: '2026', sort: 2026.4, name: 'Astro 7 compiler', lang: 'Go → Rust', era: 'native', categories: ['build'], note: 'The .astro compiler rewritten Go → Rust, built on Oxc + Lightning CSS.' },
-];
-
-entries.sort((a, b) => a.sort - b.sort);
-const entriesByEra = (era: Era) => entries.filter((e) => e.era === era);
-
-const langClass = (lang: string) => {
-  const l = lang.toLowerCase();
-  if (l.includes('zig')) return 'zig';
-  if (l.includes('rust')) return 'rust';
-  if (l.includes('go')) return 'go';
-  if (l.includes('c++') || l === 'c' || l.includes('c core')) return 'c';
-  if (l.includes('java')) return 'java';
-  if (l.includes('js')) return 'js';
-  return 'other';
-};
+// Interactive horizontal timeline of the JavaScript toolchain going native.
+//
+// Ported from the Claude Design project "Interactive timeline animation"
+// (NativeRewriteTimeline.dc.html). Three eras on a single horizontal track;
+// click a pill or an era zone to zoom in and expand that era's full tool list,
+// or hit Play for a guided tour. Self-contained: data + vanilla renderer +
+// a GSAP-driven reveal, all inline. GSAP is loaded lazily from a CDN and the
+// widget degrades to a fully-visible static state if it fails to load.
+//
+// The design's own tokens (--fg-1, --bg-1, --accent, ...) are mapped onto the
+// site's global tokens in the scoped <style> below, so the widget follows the
+// light/dark theme automatically.
 ---
 
-<section class="nrt" id="native-rewrite-timeline" aria-label="Timeline of the JavaScript toolchain going native">
-  <header class="nrt__head">
-    <span class="nrt__kicker">Interactive timeline</span>
-    <h3 class="nrt__title">The JavaScript toolchain, going native</h3>
-    <p class="nrt__sub">Three eras, one direction. Filter by what part of the stack you care about. The bracket on each card is the language the <em>tool itself</em> is written in.</p>
-  </header>
-
-  <div class="nrt__filters" role="group" aria-label="Filter by category">
-    <button class="nrt__chip is-active" data-cat="all" type="button">All</button>
-    {categories.map((c) => (
-      <button class="nrt__chip" data-cat={c.key} type="button">{c.label}</button>
-    ))}
-  </div>
-
-  <div class="nrt__eras">
-    {eras.map((era) => (
-      <div class="nrt__era" data-era={era.key}>
-        <div class="nrt__era-head">
-          <div class="nrt__era-titles">
-            <span class="nrt__era-label">{era.label}</span>
-            <span class="nrt__era-range">{era.range}</span>
-          </div>
-          <p class="nrt__era-blurb">{era.blurb}</p>
-        </div>
-        <ol class="nrt__list">
-          {entriesByEra(era.key).map((e) => (
-            <li
-              class="nrt__item"
-              data-cats={e.categories.join(' ')}
-            >
-              <span class="nrt__year">{e.year}</span>
-              <div class="nrt__card">
-                <div class="nrt__card-top">
-                  <span class="nrt__name">{e.name}</span>
-                  <span class={`nrt__lang nrt__lang--${langClass(e.lang)}`}>{e.lang}</span>
-                </div>
-                <p class="nrt__note">{e.note}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
-        <p class="nrt__empty" hidden>Nothing in this era for that filter.</p>
-      </div>
-    ))}
-  </div>
+<section
+  class="nrt"
+  data-nrt-root
+  aria-label="Interactive timeline: the JavaScript toolchain going native"
+>
+  <noscript>
+    <ol class="nrt__fallback">
+      <li><strong>Pre-Node era (2001–2009)</strong> — native by default: JSMin (C), then Java/JVM minifiers up to Closure Compiler.</li>
+      <li><strong>Node era (2009–2020)</strong> — the JavaScript exception: Browserify, Webpack, ESLint, Prettier, Babel, all JS on a C++ (V8) base.</li>
+      <li><strong>Rust era (2020–now)</strong> — native again: esbuild (Go), SWC, Biome, Oxlint, Rolldown, and Vite 8, the Rust consolidation.</li>
+    </ol>
+  </noscript>
 </section>
 
-<style>
+<!-- is:global because the timeline DOM is built client-side (in the script
+     below); Astro's default scoped styles only attach to build-time elements,
+     so class rules on JS-created nodes would be dropped. Every selector here is
+     namespaced under .nrt, so it stays confined to this widget. -->
+<style is:global>
   .nrt {
-    --nrt-rust: #ce6a3b;
-    --nrt-go: #00add8;
-    --nrt-c: #6f7f99;
-    --nrt-java: #b07219;
-    --nrt-js: #c9a227;
-    --nrt-zig: #d97b3f;
-    font-family: var(--font, sans-serif);
-    background: var(--card-bg, #fff);
-    border: 1px solid var(--border-color, #d2d2d7);
-    border-radius: var(--radius, 12px);
-    padding: 1.6rem;
-    margin: 2rem 0;
-    box-shadow: var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.06));
+    /* Map the design's tokens onto the site's global tokens. */
+    --fg-1: var(--primary-color);
+    --fg-2: var(--secondary-color);
+    --fg-3: var(--text-light);
+    --bg-1: var(--card-bg);
+    --border-1: var(--border-color);
+    --accent: var(--accent-color);
+    --radius-lg: 16px;
+    --space-6: 24px;
+    --nrt-elev: var(--bg-light);
+
+    font-family: var(--font);
+    color: var(--fg-1);
+    background: var(--bg-1);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    max-width: 720px;
+    margin: 2rem auto;
+    box-sizing: border-box;
+    box-shadow: var(--shadow-card);
   }
 
-  .nrt__head { margin-bottom: 1.2rem; }
-  .nrt__kicker {
-    display: inline-block;
-    font-size: 0.72rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    font-weight: 600;
-    color: var(--accent-color, #0071e3);
-    margin-bottom: 0.35rem;
-  }
-  .nrt__title {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: var(--primary-color, #1d1d1f);
-    margin: 0 0 0.4rem;
-  }
-  .nrt__sub {
-    font-size: 0.92rem;
-    color: var(--secondary-color, #515154);
-    margin: 0;
-    max-width: 60ch;
-    line-height: 1.5;
-  }
-
-  .nrt__filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 1.5rem;
-  }
-  .nrt__chip {
-    font-family: inherit;
-    font-size: 0.82rem;
-    font-weight: 500;
-    cursor: pointer;
-    padding: 0.4rem 0.85rem;
-    border-radius: 999px;
-    border: 1px solid var(--border-color, #d2d2d7);
-    background: var(--bg-light, #f5f5f7);
-    color: var(--secondary-color, #515154);
-    transition: all 0.15s ease;
-  }
-  .nrt__chip:hover {
-    border-color: var(--accent-color, #0071e3);
-    color: var(--accent-color, #0071e3);
-  }
-  .nrt__chip.is-active {
-    background: var(--accent-color, #0071e3);
-    border-color: var(--accent-color, #0071e3);
-    color: #fff;
-  }
-
-  .nrt__eras { display: grid; gap: 1.5rem; }
-
-  .nrt__era { position: relative; }
-  .nrt__era.is-empty { opacity: 0.45; }
-
-  .nrt__era-head {
-    border-left: 3px solid var(--accent-color, #0071e3);
-    padding-left: 0.8rem;
-    margin-bottom: 0.9rem;
-  }
-  .nrt__era-titles {
-    display: flex;
-    align-items: baseline;
-    gap: 0.6rem;
-    flex-wrap: wrap;
-  }
-  .nrt__era-label {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: var(--primary-color, #1d1d1f);
-  }
-  .nrt__era-range {
-    font-size: 0.8rem;
-    font-weight: 500;
-    color: var(--text-light, #6e6e73);
-    font-variant-numeric: tabular-nums;
-  }
-  .nrt__era-blurb {
-    font-size: 0.86rem;
-    color: var(--secondary-color, #515154);
-    margin: 0.25rem 0 0;
-    line-height: 1.45;
-  }
-
-  .nrt__list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: 0.55rem;
-  }
-
-  .nrt__item {
-    display: grid;
-    grid-template-columns: 3.4rem 1fr;
-    gap: 0.7rem;
-    align-items: start;
-  }
-  .nrt__item[hidden] { display: none; }
-
-  .nrt__year {
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--text-light, #6e6e73);
-    font-variant-numeric: tabular-nums;
-    padding-top: 0.55rem;
-    text-align: right;
-  }
-
-  .nrt__card {
-    background: var(--bg-light, #f5f5f7);
-    border: 1px solid var(--border-color, #d2d2d7);
-    border-radius: 10px;
-    padding: 0.6rem 0.75rem;
-    transition: border-color 0.15s ease;
-  }
-  .nrt__card:hover { border-color: var(--accent-color, #0071e3); }
-
-  .nrt__card-top {
+  .nrt__pills {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 10px;
     flex-wrap: wrap;
-    margin-bottom: 0.25rem;
-  }
-  .nrt__name {
-    font-size: 0.95rem;
-    font-weight: 650;
-    color: var(--primary-color, #1d1d1f);
-  }
-  .nrt__lang {
-    font-size: 0.68rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    padding: 0.1rem 0.45rem;
-    border-radius: 999px;
-    color: #fff;
-    white-space: nowrap;
-  }
-  .nrt__lang--rust { background: var(--nrt-rust); }
-  .nrt__lang--go { background: var(--nrt-go); }
-  .nrt__lang--c { background: var(--nrt-c); }
-  .nrt__lang--java { background: var(--nrt-java); }
-  .nrt__lang--js { background: var(--nrt-js); }
-  .nrt__lang--zig { background: var(--nrt-zig); }
-  .nrt__lang--other {
-    background: transparent;
-    color: var(--text-light, #6e6e73);
-    border: 1px solid var(--border-color, #d2d2d7);
+    margin: 0 0 8px;
   }
 
-  .nrt__note {
-    font-size: 0.84rem;
-    line-height: 1.45;
-    color: var(--secondary-color, #515154);
+  .nrt__scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .nrt__track {
+    position: relative;
+    height: 498px;
+    min-width: 970px;
+  }
+
+  .nrt__baseline {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--border-1);
+    transform: translateY(-50%);
+  }
+
+  .nrt__zones {
+    position: absolute;
+    inset: 0;
+    display: flex;
+  }
+
+  .nrt [data-tl-zone] {
+    transition: flex-grow 0.6s cubic-bezier(0.55, 0.03, 0.2, 1), background 0.4s ease;
+  }
+
+  .nrt__nodes {
+    position: absolute;
+    inset: 0;
+    display: flex;
+  }
+
+  .nrt__legend {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-1);
+  }
+
+  .nrt [data-pill] {
+    transition: background 0.2s ease, border-color 0.2s ease;
+  }
+  .nrt [data-pill]:hover {
+    border-color: var(--fg-3) !important;
+  }
+  .nrt [data-nrt-play] {
+    transition: background 0.2s ease;
+  }
+  .nrt [data-nrt-play]:hover {
+    background: var(--accent-hover) !important;
+  }
+
+  .nrt__fallback {
     margin: 0;
+    padding-left: 1.1rem;
+    display: grid;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--fg-2);
   }
-
-  .nrt__empty {
-    font-size: 0.85rem;
-    color: var(--text-light, #6e6e73);
-    font-style: italic;
-    margin: 0.3rem 0 0 4.1rem;
-  }
-
-  @media (max-width: 540px) {
-    .nrt { padding: 1.1rem; }
-    .nrt__item { grid-template-columns: 2.9rem 1fr; gap: 0.5rem; }
-    .nrt__year { font-size: 0.72rem; }
+  .nrt__fallback strong {
+    color: var(--fg-1);
   }
 </style>
 
 <script>
   (() => {
-    const root = document.getElementById('native-rewrite-timeline');
-    if (!root) return;
+    const root = document.querySelector('[data-nrt-root]');
+    if (!root || root.dataset.nrtReady) return;
+    root.dataset.nrtReady = '1';
 
-    const chips = Array.from(root.querySelectorAll<HTMLButtonElement>('.nrt__chip'));
-    const items = Array.from(root.querySelectorAll<HTMLLIElement>('.nrt__item'));
-    const eraBlocks = Array.from(root.querySelectorAll<HTMLElement>('.nrt__era'));
+    const esc = (s) =>
+      String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-    function apply(cat: string) {
-      items.forEach((item) => {
-        const cats = (item.dataset.cats || '').split(' ');
-        const show = cat === 'all' || cats.includes(cat);
-        item.hidden = !show;
-      });
-      // dim eras that have nothing visible, show their empty note
-      eraBlocks.forEach((era) => {
-        const visible = era.querySelectorAll('.nrt__item:not([hidden])').length;
-        era.classList.toggle('is-empty', visible === 0);
-        const empty = era.querySelector<HTMLElement>('.nrt__empty');
-        if (empty) empty.hidden = visible !== 0;
+    // ---- data (verbatim from the design) --------------------------------
+    const colors = {
+      C: '#7E8A93',
+      Java: '#B5742E',
+      JavaScript: '#E3B324',
+      'C++': '#5E7CA6',
+      Go: '#21A0C4',
+      Rust: '#C5532A',
+    };
+    const accents = { 1: '#B5742E', 2: '#E3B324', 3: '#C5532A' };
+    const picks = {
+      1: { s: 'JSMin', f: 'Closure Compiler' },
+      2: { s: 'Browserify', f: 'Webpack' },
+      3: { s: 'esbuild', f: 'Vite 8' },
+    };
+    const enablerTool = { 1: null, 2: 'Node', 3: null };
+
+    const milestones = [
+      { name: 'JSMin', year: 2001, era: 1, lang: 'C', role: 'Starter', note: 'Crockford’s minifier, the first popular one. Necessarily native.' },
+      { name: 'Closure Compiler', year: 2009, era: 1, lang: 'Java', role: 'Flagship', note: 'Google’s compiler — JS optimized by a tool written in Java.' },
+      { name: 'Node', year: 2009, era: 2, lang: 'C++', role: 'Enabler', note: 'JS gets a server host — so the toolchain can be JS too.' },
+      { name: 'Webpack', year: 2012, era: 2, lang: 'JavaScript', role: 'Flagship', note: 'Peak JS toolchain: bundling and task-running in one.' },
+      { name: 'esbuild', year: 2020, era: 3, lang: 'Go', role: 'Starter', note: 'The starting gun — 10 to 100× faster than the incumbents.' },
+      { name: 'Vite 8', year: 2026, era: 3, lang: 'Rust', role: 'Flagship', note: 'Consolidation — a single Rust toolchain.' },
+    ];
+
+    const eraMeta = {
+      1: { roman: 'I', name: 'Pre-node era', range: '2001 – 2009' },
+      2: { roman: 'II', name: 'Node era', range: '2009 – 2020' },
+      3: { roman: 'III', name: 'Rust era', range: '2020 – now' },
+    };
+
+    const tools = [
+      { name: 'JSMin', year: 2001, era: 1, language: 'C', category: 'Minifiers', note: 'Crockford’s minifier — the first popular one.' },
+      { name: 'JSLint', year: 2002, era: 1, language: 'JavaScript', category: 'Linters & Formatters', note: 'Pioneered linting — but ran in a browser textarea.' },
+      { name: 'Dojo ShrinkSafe', year: 2005, era: 1, language: 'Java', category: 'Minifiers', note: 'Compressor that parsed JS via Rhino, a JS engine in Java.' },
+      { name: 'YUI Compressor', year: 2007, era: 1, language: 'Java', category: 'Minifiers', note: 'Yahoo’s minifier, also on the JVM.' },
+      { name: 'Closure Compiler', year: 2009, era: 1, language: 'Java', category: 'Minifiers', note: 'Google’s; open-sourced November 2009.' },
+      { name: 'Node', year: 2009, era: 2, language: 'C++', category: 'Runtimes', note: 'The “JS platform” was a C++ engine (V8) all along.' },
+      { name: 'Browserify', year: 2011, era: 2, language: 'JavaScript', category: 'Bundlers', note: 'Brought require() to the browser.' },
+      { name: 'JSHint', year: 2011, era: 2, language: 'JavaScript', category: 'Linters & Formatters', note: 'Moved linting to the Node command line.' },
+      { name: 'Webpack', year: 2012, era: 2, language: 'JavaScript', category: 'Bundlers', note: 'Folded bundling and task-running into one tool.' },
+      { name: 'Grunt / Gulp', year: 2012, era: 2, language: 'JavaScript', category: 'Bundlers', note: 'Automated the build busywork.' },
+      { name: 'ESLint', year: 2013, era: 2, language: 'JavaScript', category: 'Linters & Formatters', note: 'Configurable rules; the universal linter for a decade.' },
+      { name: 'Babel', year: 2014, era: 2, language: 'JavaScript', category: 'Other', note: 'Tomorrow’s JS into today’s. Launched as 6to5.' },
+      { name: 'Prettier', year: 2017, era: 2, language: 'JavaScript', category: 'Linters & Formatters', note: 'Ended the formatting debates.' },
+      { name: 'esbuild', year: 2020, era: 3, language: 'Go', category: 'Bundlers', note: 'The starting gun — 10 to 100× faster.' },
+      { name: 'SWC', year: 2020, era: 3, language: 'Rust', category: 'Bundlers', note: 'Production-blessed once Next.js shipped it by default.' },
+      { name: 'Deno', year: 2020, era: 3, language: 'Rust', category: 'Runtimes', note: 'Rust from early on.' },
+      { name: 'Turbopack', year: 2022, era: 3, language: 'Rust', category: 'Bundlers', note: 'Chases Webpack.' },
+      { name: 'Tauri', year: 2022, era: 3, language: 'Rust', category: 'Runtimes', note: 'OS-native WebView — ~96% smaller apps than Electron.' },
+      { name: 'Biome', year: 2023, era: 3, language: 'Rust', category: 'Linters & Formatters', note: 'Replaces ESLint and Prettier in one tool.' },
+      { name: 'Rspack', year: 2023, era: 3, language: 'Rust', category: 'Bundlers', note: 'Chases Webpack.' },
+      { name: 'Rolldown', year: 2024, era: 3, language: 'Rust', category: 'Bundlers', note: 'Drop-in Rollup replacement, built on Oxc.' },
+      { name: 'Oxlint', year: 2024, era: 3, language: 'Rust', category: 'Linters & Formatters', note: '50 to 100× faster than ESLint.' },
+      { name: 'Tailwind Oxide', year: 2024, era: 3, language: 'Rust', category: 'CSS', note: 'Deleted the JavaScript config file.' },
+      { name: 'pnpm pacquet', year: 2024, era: 3, language: 'Rust', category: 'Other', note: 'Ports the install phase to Rust.' },
+      { name: 'TypeScript', year: 2025, era: 3, language: 'Go', category: 'Typechecker', note: 'Ported to Go for ~10×. VS Code: 78s → 7.5s.' },
+      { name: 'Bun', year: 2025, era: 3, language: 'Rust', category: 'Runtimes', note: '~960k lines Zig → Rust, largely with Claude Code.' },
+      { name: 'Astro 7', year: 2025, era: 3, language: 'Rust', category: 'Other', note: '.astro compiler ported Go → Rust.' },
+      { name: 'Vite 8', year: 2026, era: 3, language: 'Rust', category: 'Bundlers', note: 'The consolidation moment — one Rust toolchain.' },
+    ];
+
+    const lineGrads = {
+      1: 'linear-gradient(90deg,#7E8A93 0%,#B5742E 55%,#E3B324 100%)',
+      2: 'linear-gradient(90deg,#E3B324 0%,#E3B324 55%,#21A0C4 100%)',
+      3: 'linear-gradient(90deg,#21A0C4 0%,#C5532A 100%)',
+    };
+
+    // ---- state ----------------------------------------------------------
+    const state = { zoom: null, playing: false };
+    let timers = [];
+
+    // ---- node + value builders (ported from mkNode / renderVals) --------
+    function mkNode(item, i, ac, dense) {
+      const above = i % 2 === 0;
+      const col = colors[item.lang];
+      const yearFs = dense ? 17 : 30;
+      const nameFs = dense ? 11 : 16;
+      const dotSz = dense ? 12 : 15;
+      return {
+        above,
+        below: !above,
+        name: item.name,
+        year: String(item.year),
+        note: dense ? '' : item.note,
+        noteStyle: dense
+          ? 'display:none;'
+          : 'font-size:11.5px; line-height:1.42; color:var(--fg-2); margin-top:5px;',
+        bracket: '[ ' + item.lang + ' ]',
+        bracketStyle:
+          'font-family:var(--font-mono); font-weight:600; font-size:' +
+          (dense ? 10.5 : 12.5) +
+          'px; white-space:nowrap; color:' + col + ';',
+        nameStyle:
+          'font-family:var(--font); font-weight:600; font-size:' +
+          nameFs +
+          'px; letter-spacing:-.01em; color:var(--fg-1);',
+        tag: dense ? '' : item.tag,
+        tagStyle:
+          dense || !item.tag
+            ? 'display:none;'
+            : 'display:inline-block; font-family:var(--font-mono); font-size:8.5px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:' +
+              ac + '; background:' + ac + '22; padding:2px 8px; border-radius:8px;',
+        dotStyle:
+          'width:' + dotSz + 'px; height:' + dotSz +
+          'px; border-radius:50%; background:' + col +
+          '; box-shadow:0 0 0 3.5px var(--bg-1), 0 0 0 5px ' + col + '40;',
+        outerStyle:
+          'width:9px; height:9px; border-radius:50%; background:var(--bg-1); border:2.5px solid ' +
+          col + ';',
+        yearStyle:
+          'font-family:var(--font); font-weight:700; font-size:' + yearFs +
+          'px; line-height:1; letter-spacing:-.02em; color:' + col + ';',
+        colStyle: 'position:relative; flex:1 1 0;',
+      };
+    }
+
+    function eraValues() {
+      const zoom = state.zoom;
+      return [1, 2, 3].map((id) => {
+        const m = eraMeta[id];
+        const ac = accents[id];
+        const pk = picks[id];
+        const enTool = enablerTool[id];
+        const active = zoom === id;
+        const sliver = zoom != null && !active;
+
+        let items;
+        if (active) {
+          items = tools
+            .filter((t) => t.era === id)
+            .sort((a, b) => a.year - b.year)
+            .map((t) => {
+              const role =
+                t.name === pk.s
+                  ? 'Starter'
+                  : t.name === pk.f
+                  ? 'Flagship'
+                  : t.name === enTool
+                  ? 'Enabler'
+                  : '';
+              return {
+                name: t.name,
+                year: t.year,
+                lang: t.language,
+                note: t.note,
+                tag: role || t.category,
+              };
+            });
+        } else if (sliver) {
+          items = [];
+        } else {
+          items = milestones
+            .filter((mk) => mk.era === id)
+            .map((mk) => ({ name: mk.name, year: mk.year, lang: mk.lang, note: mk.note, tag: mk.role }));
+        }
+
+        const dense = active && items.length > 6;
+        const nodes = items.map((it, i) => mkNode(it, i, ac, dense));
+
+        let grow;
+        if (zoom == null) grow = milestones.filter((mk) => mk.era === id).length || 1;
+        else if (active) grow = 24;
+        else grow = 1;
+
+        return {
+          id,
+          roman: m.roman,
+          name: m.name,
+          range: m.range,
+          accent: ac,
+          active,
+          grow,
+          lineGrad: lineGrads[id],
+          zoneBg: active ? ac + '22' : sliver ? ac + '0d' : ac + '14',
+          zoneLabel: sliver ? m.roman : m.roman + ' · ' + m.name,
+          labelOpacity: sliver ? '.55' : '1',
+          pillBg: active ? ac + '22' : 'var(--nrt-elev)',
+          pillBorder: active ? ac : 'var(--border-1)',
+          nodes,
+        };
       });
     }
 
-    chips.forEach((chip) => {
-      chip.addEventListener('click', () => {
-        chips.forEach((c) => c.classList.remove('is-active'));
-        chip.classList.add('is-active');
-        apply(chip.dataset.cat || 'all');
-      });
+    function nodeHTML(n) {
+      const inner =
+        '<div style="' + n.tagStyle + '">' + esc(n.tag) + '</div>' +
+        '<div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-top:6px; flex-wrap:wrap;">' +
+        '<span style="' + n.nameStyle + '">' + esc(n.name) + '</span>' +
+        '<span style="' + n.bracketStyle + '">' + esc(n.bracket) + '</span>' +
+        '</div>' +
+        '<div style="' + n.noteStyle + '">' + esc(n.note) + '</div>';
+
+      const dot =
+        '<div data-tl-dot style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:3; ' +
+        n.dotStyle + '"></div>';
+
+      if (n.above) {
+        return (
+          '<div style="' + n.colStyle + '">' +
+          dot +
+          '<div data-tl-stem style="position:absolute; left:50%; top:180px; width:1.5px; height:64px; background:var(--border-1); transform:translateX(-50%) scaleY(1); transform-origin:bottom center;"></div>' +
+          '<div data-tl-outer style="position:absolute; left:50%; top:172px; transform:translate(-50%,-50%); z-index:2; ' + n.outerStyle + '"></div>' +
+          '<div data-tl-text style="position:absolute; left:5px; right:5px; bottom:338px; text-align:center;">' + inner + '</div>' +
+          '<div data-tl-year style="position:absolute; left:0; right:0; top:186px; text-align:center; ' + n.yearStyle + '">' + esc(n.year) + '</div>' +
+          '</div>'
+        );
+      }
+      return (
+        '<div style="' + n.colStyle + '">' +
+        dot +
+        '<div data-tl-stem style="position:absolute; left:50%; top:254px; width:1.5px; height:64px; background:var(--border-1); transform:translateX(-50%) scaleY(1); transform-origin:top center;"></div>' +
+        '<div data-tl-outer style="position:absolute; left:50%; top:326px; transform:translate(-50%,-50%); z-index:2; ' + n.outerStyle + '"></div>' +
+        '<div data-tl-year style="position:absolute; left:0; right:0; top:286px; text-align:center; ' + n.yearStyle + '">' + esc(n.year) + '</div>' +
+        '<div data-tl-text style="position:absolute; left:5px; right:5px; top:338px; text-align:center;">' + inner + '</div>' +
+        '</div>'
+      );
+    }
+
+    function playIcon(playing) {
+      return playing
+        ? '<svg width="11" height="11" viewBox="0 0 11 11" aria-hidden="true" style="display:block"><rect x="0.5" y="0.5" width="10" height="10" rx="2" fill="currentColor"/></svg>'
+        : '<svg width="11" height="11" viewBox="0 0 11 11" aria-hidden="true" style="display:block"><path d="M2 1.2 L9.8 5.5 L2 9.8 Z" fill="currentColor"/></svg>';
+    }
+
+    // ---- scaffold (built once; kept stable so zoom morphs smoothly) -----
+    root.insertAdjacentHTML(
+      'afterbegin',
+      '<div data-nrt="pills" class="nrt__pills"></div>' +
+        '<div class="nrt__scroll"><div data-nrt="track" class="nrt__track">' +
+        '<div class="nrt__baseline"></div><div class="nrt__zones"></div>' +
+        '</div></div>' +
+        '<div data-nrt="legend" class="nrt__legend"></div>'
+    );
+
+    const pillsWrap = root.querySelector('.nrt__pills');
+    const zonesWrap = root.querySelector('.nrt__zones');
+    const legendWrap = root.querySelector('.nrt__legend');
+
+    const initial = eraValues();
+    const pillEls = [];
+    const zoneEls = [];
+    const zoneLabelEls = [];
+    const nodeEls = [];
+
+    initial.forEach((era) => {
+      // pill
+      const pill = document.createElement('button');
+      pill.type = 'button';
+      pill.dataset.pill = String(era.id);
+      pill.setAttribute('aria-label', era.roman + ' · ' + era.name + ', ' + era.range);
+      pill.style.cssText =
+        'appearance:none; -webkit-appearance:none; margin:0; outline:none; box-sizing:border-box; cursor:pointer; flex:1 1 0; display:flex; align-items:center; gap:9px; padding:8px 14px; border-radius:var(--radius); border:1px solid var(--border-1); background:var(--nrt-elev);';
+      pill.innerHTML =
+        '<span style="width:9px; height:9px; border-radius:50%; background:' + era.accent + '; flex-shrink:0;"></span>' +
+        '<span style="font-family:var(--font); font-weight:600; font-size:14px; color:var(--fg-1);">' + esc(era.roman) + ' · ' + esc(era.name) + '</span>' +
+        '<span style="font-family:var(--font-mono); font-size:11px; color:var(--fg-3); margin-left:auto;">' + esc(era.range) + '</span>';
+      pill.addEventListener('click', () => toggleZoom(era.id));
+      pillsWrap.appendChild(pill);
+      pillEls.push(pill);
+
+      // zone
+      const zone = document.createElement('div');
+      zone.dataset.tlZone = '';
+      zone.dataset.era = String(era.id);
+      zone.style.cssText =
+        'margin:0 4px; border-radius:var(--radius); position:relative; cursor:pointer; overflow:hidden; flex-basis:0; flex-shrink:1;';
+      const line = document.createElement('div');
+      line.dataset.tlLine = '';
+      line.style.cssText =
+        'position:absolute; top:50%; left:0; right:0; height:2.5px; transform:translateY(-50%) scaleX(1); transform-origin:left center; background:' + era.lineGrad + ';';
+      const nodes = document.createElement('div');
+      nodes.className = 'nrt__nodes';
+      const label = document.createElement('div');
+      label.style.cssText =
+        'position:absolute; left:0; right:0; bottom:6px; text-align:center; font-family:var(--font-mono); font-size:10px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 4px;';
+      zone.append(line, nodes, label);
+      zone.addEventListener('click', () => toggleZoom(era.id));
+      zonesWrap.appendChild(zone);
+      zoneEls.push(zone);
+      zoneLabelEls.push(label);
+      nodeEls.push(nodes);
     });
+
+    // legend
+    const legendNative = ['C', 'Java', 'JavaScript', 'C++', 'Go', 'Rust'];
+    const legendItems = legendNative
+      .map(
+        (name) =>
+          '<span style="display:inline-flex; align-items:center; gap:7px; font-family:var(--font-mono); font-size:12.5px; color:var(--fg-2);">' +
+          '<span style="width:11px; height:11px; border-radius:3px; background:' + colors[name] + ';"></span>' +
+          esc(name) + '</span>'
+      )
+      .join('');
+    const playStyle =
+      'appearance:none; -webkit-appearance:none; margin:0; outline:none; box-sizing:border-box; cursor:pointer; flex:0 0 auto; display:inline-flex; align-items:center; gap:8px; padding:9px 18px; border:none; border-radius:980px; font-family:var(--font); font-size:14px; font-weight:500; white-space:nowrap; color:#fff; background:var(--accent); margin-left:auto;';
+    legendWrap.innerHTML =
+      '<span style="font-family:var(--font-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--fg-3);">Written in</span>' +
+      '<div style="display:flex; gap:14px; flex-wrap:wrap; align-items:center;">' + legendItems + '</div>' +
+      '<button data-nrt-play type="button" style="' + playStyle + '"></button>';
+    const playBtn = legendWrap.querySelector('[data-nrt-play]');
+    playBtn.addEventListener('click', () => (state.playing ? stopTour() : startTour()));
+
+    // ---- render (updates the stable scaffold) ---------------------------
+    function render() {
+      const eras = eraValues();
+      eras.forEach((era, i) => {
+        const pill = pillEls[i];
+        pill.style.background = era.pillBg;
+        pill.style.borderColor = era.pillBorder;
+        pill.setAttribute('aria-pressed', String(era.active));
+
+        const zone = zoneEls[i];
+        zone.style.flexGrow = String(era.grow);
+        zone.style.background = era.zoneBg;
+
+        const label = zoneLabelEls[i];
+        label.textContent = era.zoneLabel;
+        label.style.color = era.accent;
+        label.style.opacity = era.labelOpacity;
+
+        nodeEls[i].innerHTML = era.nodes.map(nodeHTML).join('');
+      });
+      playBtn.innerHTML = playIcon(state.playing) + '<span>' + (state.playing ? 'Stop' : 'Play') + '</span>';
+    }
+
+    function setZoom(z) {
+      state.zoom = z;
+      render();
+    }
+    function toggleZoom(id) {
+      stopTour();
+      setZoom(state.zoom === id ? null : id);
+    }
+
+    // ---- guided tour ----------------------------------------------------
+    function clearTimers() {
+      timers.forEach(clearTimeout);
+      timers = [];
+    }
+    function stopTour() {
+      clearTimers();
+      if (state.playing) {
+        state.playing = false;
+        render();
+      }
+    }
+    function startTour() {
+      clearTimers();
+      state.playing = true;
+      setZoom(null);
+      const steps = [1, 2, 3, null];
+      const dwell = 2400;
+      let t = 500;
+      steps.forEach((z, i) => {
+        timers.push(
+          setTimeout(() => {
+            setZoom(z);
+            if (i === steps.length - 1) {
+              timers.push(
+                setTimeout(() => {
+                  state.playing = false;
+                  render();
+                }, 400)
+              );
+            }
+          }, t)
+        );
+        t += dwell;
+      });
+    }
+
+    render();
+
+    // ---- reveal animation (GSAP, loaded lazily; static fallback) --------
+    const reduceMotion =
+      window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function loadScript(src) {
+      return new Promise((res, rej) => {
+        if (Array.from(document.scripts).some((s) => s.src === src)) return res();
+        const s = document.createElement('script');
+        s.src = src;
+        s.onload = res;
+        s.onerror = rej;
+        document.head.appendChild(s);
+      });
+    }
+
+    async function ensureGsap() {
+      if (window.gsap && window.ScrollTrigger) return true;
+      try {
+        await loadScript('https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js');
+        await loadScript('https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js');
+        return !!(window.gsap && window.ScrollTrigger);
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function initGsap() {
+      const gsap = window.gsap;
+      gsap.registerPlugin(window.ScrollTrigger);
+      const q = (s) => Array.from(root.querySelectorAll(s));
+      let tl;
+
+      const hideAll = () => {
+        gsap.set(q('[data-pill]'), { y: 12, opacity: 0 });
+        gsap.set(q('[data-tl-line]'), { scaleX: 0 });
+        gsap.set(q('[data-tl-dot]'), { scale: 0, opacity: 0, transformOrigin: 'center' });
+        gsap.set(q('[data-tl-stem]'), { scaleY: 0 });
+        gsap.set(q('[data-tl-outer]'), { scale: 0, opacity: 0, transformOrigin: 'center' });
+        gsap.set(q('[data-tl-year], [data-tl-text]'), { opacity: 0, y: 10 });
+        gsap.set(q('[data-tl-zone]'), { opacity: 0 });
+        gsap.set(q('[data-nrt="legend"]'), { opacity: 0 });
+      };
+      const forceVisible = () => {
+        if (tl) tl.pause();
+        gsap.set(q('[data-tl-line]'), { scaleX: 1 });
+        ['[data-pill]', '[data-tl-zone]', '[data-tl-dot]', '[data-tl-stem]', '[data-tl-outer]', '[data-tl-year]', '[data-tl-text]', '[data-nrt="legend"]'].forEach(
+          (s) => q(s).forEach((el) => gsap.set(el, { clearProps: 'opacity,transform' }))
+        );
+      };
+
+      tl = gsap.timeline({ paused: true, defaults: { ease: 'power2.out' } });
+      tl.to(q('[data-pill]'), { y: 0, opacity: 1, duration: 0.45, stagger: 0.09 })
+        .to(q('[data-tl-zone]'), { opacity: 1, duration: 0.5, stagger: 0.09 }, '-=.2')
+        .to(q('[data-tl-line]'), { scaleX: 1, duration: 1, stagger: 0.12, ease: 'power2.inOut' }, '-=.25')
+        .to(q('[data-tl-dot]'), { scale: 1, opacity: 1, duration: 0.4, stagger: 0.12, ease: 'back.out(2.4)' }, '-=.7')
+        .to(q('[data-tl-stem]'), { scaleY: 1, duration: 0.35, stagger: 0.12 }, '<+=.1')
+        .to(q('[data-tl-outer]'), { scale: 1, opacity: 1, duration: 0.3, stagger: 0.12 }, '<+=.05')
+        .to(q('[data-tl-year]'), { opacity: 1, y: 0, duration: 0.4, stagger: 0.12 }, '<')
+        .to(q('[data-tl-text]'), { opacity: 1, y: 0, duration: 0.4, stagger: 0.12 }, '<+=.05')
+        .to(q('[data-nrt="legend"]'), { opacity: 1, duration: 0.4 }, '-=.2');
+
+      const startReveal = () => {
+        if (tl.progress() === 0 && !tl.isActive()) {
+          hideAll();
+          tl.play();
+        }
+      };
+      window.ScrollTrigger.create({ trigger: root, start: 'top 82%', once: true, onEnter: startReveal });
+      window.ScrollTrigger.refresh();
+      if (root.getBoundingClientRect().top < (window.innerHeight || 800) * 0.9) startReveal();
+
+      // watchdog: if the timeline stalls (e.g. background tab), snap to visible
+      let last = -1;
+      let stalls = 0;
+      const wd = setInterval(() => {
+        const p = tl.progress();
+        if (p >= 1) {
+          clearInterval(wd);
+          return;
+        }
+        if (tl.isActive()) {
+          if (p <= last + 1e-4) {
+            if (++stalls >= 3) {
+              forceVisible();
+              clearInterval(wd);
+            }
+          } else stalls = 0;
+          last = p;
+        }
+      }, 280);
+    }
+
+    if (!reduceMotion) {
+      ensureGsap().then((ok) => {
+        if (ok) {
+          try {
+            initGsap();
+          } catch (e) {
+            /* leave the widget fully visible */
+          }
+        }
+      });
+    }
   })();
 </script>
