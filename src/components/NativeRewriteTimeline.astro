@@ -72,6 +72,21 @@
     margin: 0 0 8px;
   }
 
+  /* On narrow screens the three era pills get squeezed to a third of the
+     width each, wrapping their labels. Stack them one per row instead.
+     flex:0 0 auto overrides the pills' inline flex:1 1 0 (whose 0 basis would
+     otherwise collapse them to zero height in a column). */
+  @media (max-width: 560px) {
+    .nrt .nrt__pills {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .nrt .nrt__pills [data-pill] {
+      flex: 0 0 auto !important;
+      width: 100%;
+    }
+  }
+
   .nrt__scroll {
     overflow-x: auto;
     overflow-y: hidden;
