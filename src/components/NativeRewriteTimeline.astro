@@ -50,8 +50,16 @@
     border: 1px solid var(--border-1);
     border-radius: var(--radius-lg);
     padding: var(--space-6);
-    max-width: 720px;
-    margin: 2rem auto;
+    /* The timeline track is a fixed 970px; size the card to fit it exactly:
+       970 track + 2×24px padding + 2×1px border = 1020px (box-sizing is
+       border-box, so the border counts toward width). Break out of the ~720px
+       prose column so the whole timeline shows with no horizontal scroll.
+       Clamps to the viewport on narrow screens, where the track scrolls. */
+    width: min(1020px, 100vw - 2rem);
+    max-width: none;
+    margin: 2rem 0;
+    margin-left: 50%;
+    transform: translateX(-50%);
     box-sizing: border-box;
     box-shadow: var(--shadow-card);
   }
